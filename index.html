@@ -975,13 +975,14 @@ const NETWORK_BASE = [{"y":"202512","cn":"588484785","plan":"디지털 디톡스
 // STATE
 // ============================================================
 let extraMonthly=[], extraRewards=[], extraBilling=[], extraPayments=[], extraNetwork=[];
-try{const s=localStorage.getItem('dm_extra');if(s){const e=JSON.parse(s);extraMonthly=e.monthly||[];extraRewards=e.rewards||[];extraBilling=e.billing||[];extraPayments=e.payments||[];extraNetwork=e.network||[];}}catch(e){}
+let excludedBuiltIn=new Set(); // 기본 내장 데이터 중 삭제된 월
+try{const s=localStorage.getItem('dm_extra');if(s){const e=JSON.parse(s);extraMonthly=e.monthly||[];extraRewards=e.rewards||[];extraBilling=e.billing||[];extraPayments=e.payments||[];extraNetwork=e.network||[];excludedBuiltIn=new Set(e.excludedBuiltIn||[]);}}catch(e){}
 
-function getMonthly(){return[...BASE.monthly,...extraMonthly].sort((a,b)=>a.y.localeCompare(b.y))}
-function getRewards(){return[...REWARDS_BASE,...extraRewards]}
-function getBilling(){return[...BILLING_BASE,...extraBilling]}
-function getPayments(){return[...PAYMENTS_BASE,...extraPayments]}
-function getNetwork(){return[...NETWORK_BASE,...extraNetwork]}
+function getMonthly(){return[...BASE.monthly.filter(r=>!excludedBuiltIn.has(r.y)),...extraMonthly].sort((a,b)=>a.y.localeCompare(b.y))}
+function getRewards(){return[...REWARDS_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraRewards]}
+function getBilling(){return[...BILLING_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraBilling]}
+function getPayments(){return[...PAYMENTS_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraPayments]}
+function getNetwork(){return[...NETWORK_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraNetwork]}
 
 let chartInstances={};
 
@@ -1613,6 +1614,33 @@ function handleUpload(e){
         }
         log.textContent+=`망이용대가: ${added.network.length}건\n`;
       }
+      // ── 총괄 시트 없을 때: 상세 데이터에서 월 요약 자동 생성 ──
+      if(added.monthly.length===0){
+        const allDetailYms=new Set([
+          ...added.rewards.map(r=>r.y),
+          ...added.billing.map(r=>r.y),
+          ...added.payments.map(r=>r.y),
+          ...added.network.map(r=>r.y)
+        ]);
+        const existYmCheck=new Set([...BASE.monthly,...extraMonthly].map(r=>r.y));
+        [...allDetailYms].filter(ym=>!existYmCheck.has(ym)).forEach(ym=>{
+          const rews=added.rewards.filter(r=>r.y===ym);
+          const bills=added.billing.filter(r=>r.y===ym);
+          const pays=added.payments.filter(r=>r.y===ym);
+          const nets=added.network.filter(r=>r.y===ym);
+          const bo=rews.reduce((s,r)=>s+(r.amt||0),0);
+          const b=bills.reduce((s,r)=>s+(r.b||0),0);
+          const d=bills.reduce((s,r)=>s+(r.d||0),0);
+          const nb=bills.reduce((s,r)=>s+(r.nb||0),0);
+          const ls=bills.length;
+          const p=pays.reduce((s,r)=>s+(r.p||0),0);
+          const nd=nets.reduce((s,r)=>s+(r.net||0),0);
+          const fee=nets.reduce((s,r)=>s+(r.fee||0),0);
+          added.monthly.push({y:ym,bo,b,d,nb,ls,p,nd,fee,dw:nd+fee,stage:0});
+        });
+        if(added.monthly.length>0) log.textContent+=`총괄 자동생성: ${added.monthly.length}건 (상세 데이터 기반)\n`;
+      }
+
       // merge & dedup by y
       const existYm=new Set([...BASE.monthly,...extraMonthly].map(r=>r.y));
       added.monthly=added.monthly.filter(r=>!existYm.has(r.y));
@@ -1630,7 +1658,7 @@ function handleUpload(e){
       added.network=added.network.filter(r=>!existNetYm.has(r.y));
       extraNetwork=[...extraNetwork,...added.network];
       // save
-      try{localStorage.setItem('dm_extra',JSON.stringify({monthly:extraMonthly,rewards:extraRewards,billing:extraBilling,payments:extraPayments,network:extraNetwork}))}catch(e){}
+      _saveLocal();
       log.textContent+=`\n✅ 업로드 완료! 새 데이터: 총괄 ${added.monthly.length}건, 장려금 ${added.rewards.length}건, 청구 ${added.billing.length}건, 수납 ${added.payments.length}건, 망이용 ${added.network.length}건\n`;
       if(added.monthly.length===0)log.textContent+=`(이미 포함된 정산월이거나 신규 데이터 없음)\n`;
       renderUploadInfo();
@@ -1711,9 +1739,7 @@ function renderUploadInfo(){
     const checked=_upChecked.has(r.y);
     return`<tr style="${checked?'background:rgba(26,110,245,.06)':''}">
       <td style="text-align:center">
-        ${isBuiltIn
-          ?`<span style="font-size:10px;color:var(--text3)" title="기본 내장 데이터">🔒</span>`
-          :`<input type="checkbox" ${checked?'checked':''} onchange="toggleUpMonth('${r.y}',this.checked)" style="accent-color:var(--accent)">`}
+        <input type="checkbox" ${checked?'checked':''} onchange="toggleUpMonth('${r.y}',this.checked)" style="accent-color:var(--accent)">
       </td>
       <td><strong>${fmt(r.y)}</strong>${isBuiltIn?`<span style="font-size:10px;color:var(--text3);margin-left:6px">내장</span>`:''}</td>
       <td class="num" style="color:var(--text2)">${isBuiltIn?'기본':'업로드'}</td>
@@ -1738,33 +1764,49 @@ function toggleUpMonth(ym,checked){
 }
 
 function toggleAllUpMonths(checked){
-  const builtIn=new Set(BASE.monthly.map(r=>r.y));
-  getMonthly().filter(r=>!builtIn.has(r.y)).forEach(r=>{
+  getMonthly().forEach(r=>{
     if(checked) _upChecked.add(r.y);
     else _upChecked.delete(r.y);
   });
+  // 제외된 내장 데이터도 체크 가능하도록
+  if(checked) [...excludedBuiltIn].forEach(y=>_upChecked.add(y));
   renderUploadInfo();
 }
 
 function deleteCheckedMonths(){
   if(_upChecked.size===0){alert('삭제할 정산월을 선택해주세요.');return;}
+  const builtInYms=new Set(BASE.monthly.map(r=>r.y));
   const list=[..._upChecked].sort().map(fmt).join(', ');
   if(!confirm(`다음 정산월 데이터를 삭제할까요?\n\n${list}`))return;
 
   _upChecked.forEach(ym=>{
-    extraMonthly=extraMonthly.filter(r=>r.y!==ym);
-    extraRewards=extraRewards.filter(r=>r.y!==ym);
-    extraBilling=extraBilling.filter(r=>r.y!==ym);
-    extraPayments=extraPayments.filter(r=>r.y!==ym);
-    extraNetwork=extraNetwork.filter(r=>r.y!==ym);
+    if(builtInYms.has(ym)){
+      // 기본 내장 데이터는 excludedBuiltIn에 추가
+      excludedBuiltIn.add(ym);
+    } else {
+      // 업로드 데이터는 배열에서 제거
+      extraMonthly=extraMonthly.filter(r=>r.y!==ym);
+      extraRewards=extraRewards.filter(r=>r.y!==ym);
+      extraBilling=extraBilling.filter(r=>r.y!==ym);
+      extraPayments=extraPayments.filter(r=>r.y!==ym);
+      extraNetwork=extraNetwork.filter(r=>r.y!==ym);
+    }
   });
   _upChecked.clear();
-  try{localStorage.setItem('dm_extra',JSON.stringify({monthly:extraMonthly,rewards:extraRewards,billing:extraBilling,payments:extraPayments,network:extraNetwork}));}catch(e){}
+  _saveLocal();
   if(typeof _saveRemoteData==='function') _saveRemoteData();
   document.getElementById('upRangeFrom').innerHTML='';
   document.getElementById('upRangeTo').innerHTML='';
   renderUploadInfo();
   document.getElementById('uploadLog').textContent=`✅ ${list} 삭제 완료`;
+}
+
+function _saveLocal(){
+  try{localStorage.setItem('dm_extra',JSON.stringify({
+    monthly:extraMonthly,rewards:extraRewards,billing:extraBilling,
+    payments:extraPayments,network:extraNetwork,
+    excludedBuiltIn:[...excludedBuiltIn]
+  }));}catch(e){}
 }
 
 function exportData(){
