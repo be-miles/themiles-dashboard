@@ -1552,6 +1552,16 @@ function handleUpload(e){
       const wb=XLSX.read(ev.target.result,{type:'array'});
       log.textContent+=`시트: ${wb.SheetNames.join(', ')}\n`;
       let added={monthly:[],rewards:[],billing:[],payments:[],network:[]};
+
+      // 헤더에서 컬럼 위치 동적 감지 헬퍼
+      const findCol=(rows,name)=>{
+        for(let i=0;i<Math.min(rows.length,6);i++){
+          const idx=(rows[i]||[]).findIndex(c=>String(c||'').replace(/\n/g,'').includes(name));
+          if(idx>=0)return idx;
+        }
+        return -1;
+      };
+
       // 총괄
       if(wb.SheetNames.includes('총괄')){
         const ws=wb.Sheets['총괄'];
@@ -1562,55 +1572,95 @@ function handleUpload(e){
           for(let i=hRow+1;i<rows.length;i++){
             const r=rows[i];
             if(r[1]==='VPI0007'){
-              const rn=v=>Math.round(Number(v||0)); // 원화 금액 필드
-              const n=v=>Number(v||0);              // 카운트/수량 필드
+              const rn=v=>Math.round(Number(v||0));
+              const n=v=>Number(v||0);
               added.monthly.push({y:String(r[3]),입:String(r[4]),bo:rn(r[5]),b:rn(r[7]),d:rn(r[8]),nb:rn(r[9]),ls:n(r[14]),stage:rn(r[15]),p:rn(r[17]),nd:rn(r[21]),fee:rn(r[23]),dw:rn(r[25])});
             }
           }
           log.textContent+=`총괄: ${added.monthly.length}건 파싱\n`;
         }
       }
-      // 가입일시 보상금
-      if(wb.SheetNames.includes('가입일시 보상금')){
-        const ws=wb.Sheets['가입일시 보상금'];
+
+      // 가입일시 보상금 — 헤더 기반 컬럼 감지
+      const rwSheet=wb.SheetNames.find(n=>n.includes('가입일시')&&n.includes('보상금'));
+      if(rwSheet){
+        const ws=wb.Sheets[rwSheet];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-        for(let i=4;i<rows.length;i++){
+        const yC=findCol(rows,'정산년월'),tC=findCol(rows,'구분'),tpC=findCol(rows,'유형');
+        const cnC=findCol(rows,'계약번호'),ctC=findCol(rows,'청구계정');
+        const dtC=findCol(rows,'개통일'),ecC=findCol(rows,'해지일');
+        const nmC=findCol(rows,'고객명'),plC=findCol(rows,'요금제');
+        const amtC=findCol(rows,'보상금 계');
+        for(let i=0;i<rows.length;i++){
+          if(yC<0||!rows[i])continue;
           const r=rows[i];
-          if(r[1]&&!isNaN(Number(r[1]))){
-            const dt=r[11]?new Date(r[11]):null;
-            added.rewards.push({no:Number(r[1]),y:String(r[2]),t:String(r[3]||''),tp:String(r[4]||''),cn:String(r[9]||''),ct:String(r[10]||''),dt:dt?dt.toISOString().substring(0,10):null,ec:null,nm:String(r[13]||''),pl:String(r[14]||''),amt:Math.round(Number(r[15]||0)),p1:Math.round(Number(r[16]||0)),p2:Math.round(Number(r[17]||0))/* 원화 금액만 round */});
-          }
+          const ym=String(r[yC]||'').trim();
+          if(!/^\d{6}$/.test(ym))continue;
+          const dt=dtC>=0&&r[dtC]?new Date(r[dtC]):null;
+          added.rewards.push({
+            y:ym,t:String(r[tC]||''),tp:String(r[tpC]||''),
+            cn:String(r[cnC]||''),ct:String(r[ctC]||''),
+            dt:dt?dt.toISOString().substring(0,10):null,ec:null,
+            nm:String(r[nmC]||''),pl:String(r[plC]||''),
+            amt:amtC>=0?Math.round(Number(r[amtC]||0)):0,
+            p1:amtC>=0?Math.round(Number(r[amtC+1]||0)):0,
+            p2:amtC>=0?Math.round(Number(r[amtC+2]||0)):0
+          });
         }
         log.textContent+=`장려금: ${added.rewards.length}건 파싱\n`;
       }
-      // 청구상세
+
+      // 청구상세 — 헤더 기반
       if(wb.SheetNames.includes('청구상세')){
         const ws=wb.Sheets['청구상세'];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-        for(let i=4;i<rows.length;i++){
+        const vpiC=findCol(rows,'대리점코드');
+        const yC=findCol(rows,'청구년월')>=0?findCol(rows,'청구년월'):findCol(rows,'정산년월');
+        const ctC=findCol(rows,'청구계정'),cnC=findCol(rows,'계약번호');
+        const bC=findCol(rows,'청구금'),dC=findCol(rows,'할인금'),nbC=findCol(rows,'실청구금');
+        for(let i=0;i<rows.length;i++){
           const r=rows[i];
-          if(r[1]==='VPI0007'&&r[5])added.billing.push({y:String(r[3]),ct:String(r[4]||''),cn:String(r[5]||''),b:Math.round(Number(r[6]||0)),d:Math.round(Number(r[7]||0)),nb:Math.round(Number(r[8]||0))});
+          if(String(r[vpiC]||'')!=='VPI0007')continue;
+          const ym=String(r[yC]||'').trim();
+          if(!/^\d{6}$/.test(ym))continue;
+          added.billing.push({y:ym,ct:String(r[ctC]||''),cn:String(r[cnC]||''),b:Math.round(Number(r[bC]||0)),d:Math.round(Number(r[dC]||0)),nb:Math.round(Number(r[nbC]||0))});
         }
         log.textContent+=`청구상세: ${added.billing.length}건\n`;
       }
-      // 수납상세
+
+      // 수납상세 — 헤더 기반
       if(wb.SheetNames.includes('수납상세')){
         const ws=wb.Sheets['수납상세'];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-        for(let i=4;i<rows.length;i++){
+        const vpiC=findCol(rows,'대리점코드');
+        const yC=findCol(rows,'수납년월')>=0?findCol(rows,'수납년월'):findCol(rows,'정산년월');
+        const ctC=findCol(rows,'청구계정'),cnC=findCol(rows,'계약번호');
+        const pC=findCol(rows,'실수납');
+        for(let i=0;i<rows.length;i++){
           const r=rows[i];
-          if(r[1]==='VPI0007'&&r[5])added.payments.push({y:String(r[3]),ct:String(r[4]||''),cn:String(r[5]||''),p:Math.round(Number(r[6]||0))});
+          if(String(r[vpiC]||'')!=='VPI0007')continue;
+          const ym=String(r[yC]||'').trim();
+          if(!/^\d{6}$/.test(ym))continue;
+          added.payments.push({y:ym,ct:String(r[ctC]||''),cn:String(r[cnC]||''),p:Math.round(Number(r[pC]||0))});
         }
         log.textContent+=`수납상세: ${added.payments.length}건\n`;
       }
-      // 망이용대가
+
+      // 망이용대가 — 헤더 기반
       const nSheet='망이용대가 대행수수료 상세';
       if(wb.SheetNames.includes(nSheet)){
         const ws=wb.Sheets[nSheet];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-        for(let i=4;i<rows.length;i++){
+        const vpiC=findCol(rows,'대리점코드');
+        const yC=findCol(rows,'정산년월');
+        const cnC=findCol(rows,'계약번호'),planC=findCol(rows,'요금제');
+        const netC=findCol(rows,'망이용대가'),feeC=findCol(rows,'대행수수료');
+        for(let i=0;i<rows.length;i++){
           const r=rows[i];
-          if(r[1]==='VPI0007'&&r[5])added.network.push({y:String(r[3]),cn:String(r[5]||''),plan:String(r[6]||''),net:Math.round(Number(r[9]||0)),fee:Math.round(Number(r[16]||0)),total:Math.round(Number(r[17]||0))});
+          if(String(r[vpiC]||'')!=='VPI0007')continue;
+          const ym=String(r[yC]||'').trim();
+          if(!/^\d{6}$/.test(ym))continue;
+          added.network.push({y:ym,cn:String(r[cnC]||''),plan:String(r[planC]||''),net:Math.round(Number(r[netC]||0)),fee:feeC>=0?Math.round(Number(r[feeC]||0)):0,total:0});
         }
         log.textContent+=`망이용대가: ${added.network.length}건\n`;
       }
@@ -1697,12 +1747,18 @@ function renderUploadInfo(){
   const all=getMonthly();
   const allYms=all.map(r=>r.y);
 
-  // 셀렉트 초기화
+  // 셀렉트 항상 갱신 (업로드 후 새 월 반영)
   const fromSel=document.getElementById('upRangeFrom');
   const toSel=document.getElementById('upRangeTo');
-  if(fromSel&&fromSel.options.length===0){
+  if(fromSel&&toSel){
+    const prevFrom=fromSel.value;
+    const prevTo=toSel.value;
+    fromSel.innerHTML='';toSel.innerHTML='';
     allYms.forEach(y=>{fromSel.appendChild(new Option(fmt(y),y));toSel.appendChild(new Option(fmt(y),y));});
-    if(allYms.length){fromSel.value=allYms[0];toSel.value=allYms[allYms.length-1];}
+    if(allYms.length){
+      fromSel.value=allYms.includes(prevFrom)?prevFrom:allYms[0];
+      toSel.value=allYms.includes(prevTo)?prevTo:allYms[allYms.length-1];
+    }
   }
 
   // 필터 적용
@@ -1818,8 +1874,6 @@ function clearExtraData(){
   extraMonthly=[];extraRewards=[];extraBilling=[];extraPayments=[];extraNetwork=[];
   _upChecked.clear();
   try{localStorage.removeItem('dm_extra')}catch(e){}
-  document.getElementById('upRangeFrom').innerHTML='';
-  document.getElementById('upRangeTo').innerHTML='';
   if(typeof _saveRemoteData==='function') _saveRemoteData();
   renderUploadInfo();
   document.getElementById('uploadLog').textContent='초기화 완료.';
@@ -1898,14 +1952,17 @@ function renderSubscriberTable(){
 
   const ensure=(cn,ct,nm,pl,dt,ec,src)=>{
     if(!cn)return;
-    if(!subInfo[cn])subInfo[cn]={cn,ct:'',nm:'',pl:'',dt:'',ec:'',sources:new Set()};
+    if(!subInfo[cn])subInfo[cn]={cn,ct:'',nm:'',pl:'',dt:'',ec:'',netPlan:'',sources:new Set()};
     const s=subInfo[cn];
     s.sources.add(src);
     if(ct&&!s.ct)s.ct=ct;
     if(nm&&!s.nm)s.nm=nm;
-    if(pl&&!s.pl)s.pl=pl;
-    // PLAN_ALIAS에 있는 요금제명이 더 구체적이면 덮어쓰기
-    if(pl&&PLAN_ALIAS[pl])s.pl=pl;
+    // 정책 매칭용 요금제: 망이용 시트 제외 (장려금/청구/수납 기준)
+    if(src==='망이용'){
+      if(pl) s.netPlan=pl; // 화면 표시용으로만 저장
+    } else {
+      if(pl&&!s.pl)s.pl=pl;
+    }
     if(dt&&(!s.dt||dt<s.dt))s.dt=dt;
     if(ec&&!s.ec)s.ec=ec;
   };
@@ -2041,7 +2098,9 @@ function renderSubscriberTable(){
     const nmCell=isTerm
       ?`<span style="color:var(--accent4);font-size:11px;font-weight:700">⚠ 당월해지</span>`
       :info.nm?info.nm:`<span style="color:var(--text3);font-size:11px">미확인</span>`;
-    const plCell=`<span class="tag tag-blue" style="font-size:11px">${planDisp(info.pl)||'—'}</span>`;
+    // 표시용 요금제: 망이용 alias 우선, 없으면 장려금 기준 pl
+    const displayPl=info.netPlan&&PLAN_ALIAS[info.netPlan]?PLAN_ALIAS[info.netPlan]:planDisp(info.pl);
+    const plCell=`<span class="tag tag-blue" style="font-size:11px">${displayPl||'—'}</span>`;
 
     if(!ymKeys.length){
       // 기간 내 데이터 없음 — 가입자 행만 표시
