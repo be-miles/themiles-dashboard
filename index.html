@@ -840,25 +840,78 @@ select.inp{cursor:pointer}
 
     <!-- ===== 업로드 ===== -->
     <div class="panel" id="panel-upload">
-      <div class="section" style="padding:24px">
-        <div class="section-head"><span class="section-title">📤 엑셀 업로드 (SheetJS)</span></div>
+      <div class="section">
+        <div class="section-head"><span class="section-title">📤 엑셀 업로드</span></div>
         <div style="padding:20px">
-          <p style="margin-bottom:16px;color:var(--text2);font-size:13px">상대방에게 받은 정산서 엑셀(.xlsx)을 업로드하면 자동으로 파싱하여 데이터를 추가합니다.</p>
+          <p style="margin-bottom:16px;color:var(--text2);font-size:13px">정산서 엑셀(.xlsx)을 업로드하면 자동으로 파싱하여 데이터를 추가합니다.</p>
           <label class="upload-zone" id="uploadZone">
             <input type="file" accept=".xlsx,.xls" onchange="handleUpload(event)">
             <span style="font-size:28px">📁</span>
             <span class="upload-text"><strong>엑셀 파일을 클릭하여 선택</strong><br>정산서_YYYYMM.xlsx 형식</span>
           </label>
-          <div id="uploadLog" style="font-size:13px;color:var(--text2);background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:14px;min-height:80px;white-space:pre-wrap;font-family:monospace"></div>
-          <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="exportData()">💾 현재 데이터 JSON 내보내기</button>
-            <button class="btn btn-ghost" onclick="clearExtraData()">🗑️ 업로드 데이터 초기화</button>
-          </div>
+          <div id="uploadLog" style="font-size:13px;color:var(--text2);background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:14px;min-height:60px;white-space:pre-wrap;font-family:monospace"></div>
         </div>
       </div>
-      <div class="section" style="padding:0">
-        <div class="section-head"><span class="section-title">📋 업로드된 정산월 목록</span></div>
-        <div style="padding:18px" id="uploadedMonths"></div>
+
+      <!-- 업로드된 정산월 목록 -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-title">📋 업로드된 정산월 목록</span>
+          <span style="font-size:12px;color:var(--text2)" id="uploadMonthCount"></span>
+        </div>
+
+        <!-- 기간/월 선택 필터 -->
+        <div style="border-top:1px solid var(--border)">
+          <div class="filter-row" id="uprow-range">
+            <label class="radio-label">
+              <input type="radio" name="upMode" value="range" checked onchange="setUploadMode('range')">
+              <span>기간 선택</span>
+            </label>
+            <select class="inp" id="upRangeFrom" onchange="renderUploadInfo()" style="width:100px"></select>
+            <span style="color:var(--text2);font-size:13px;flex-shrink:0">~</span>
+            <select class="inp" id="upRangeTo" onchange="renderUploadInfo()" style="width:100px"></select>
+          </div>
+          <div class="filter-row inactive" id="uprow-pick" style="flex-direction:column;align-items:flex-start;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
+              <label class="radio-label">
+                <input type="radio" name="upMode" value="pick" onchange="setUploadMode('pick')">
+                <span>월 선택</span>
+              </label>
+              <select class="inp" id="upPickYear" onchange="renderUpPickGrid()" style="min-width:90px;font-weight:600"></select>
+              <button class="btn btn-ghost" onclick="upPickAll()" style="padding:3px 10px;font-size:11px;flex-shrink:0">전체</button>
+              <button class="btn btn-ghost" onclick="upPickClear()" style="padding:3px 10px;font-size:11px;flex-shrink:0">해제</button>
+            </div>
+            <div id="upPickGrid" style="display:flex;gap:4px;align-items:flex-end;width:100%;padding-left:4px"></div>
+          </div>
+        </div>
+
+        <!-- 체크박스 목록 + 삭제 -->
+        <div style="padding:14px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="upCheckAll" onchange="toggleAllUpMonths(this.checked)" style="accent-color:var(--accent)">
+            <span>전체 선택</span>
+          </label>
+          <button class="btn" style="background:var(--accent4);color:#fff;padding:5px 14px;font-size:12px" onclick="deleteCheckedMonths()">🗑️ 선택 삭제</button>
+          <span id="upCheckedCount" style="font-size:11px;color:var(--text2)"></span>
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost" onclick="exportData()" style="padding:5px 12px;font-size:12px">💾 JSON 내보내기</button>
+        </div>
+
+        <!-- 정산월 테이블 -->
+        <div class="table-wrap" style="max-height:calc(100vh - 480px)">
+          <table id="uploadMonthTable">
+            <thead><tr>
+              <th style="width:40px"></th>
+              <th>정산년월</th>
+              <th class="num">구분</th>
+              <th class="num">장려금</th>
+              <th class="num">청구</th>
+              <th class="num">수납</th>
+              <th class="num">망이용</th>
+            </tr></thead>
+            <tbody id="tbodyUploadMonths"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1586,20 +1639,146 @@ function handleUpload(e){
   };
   reader.readAsArrayBuffer(file);
 }
+// ============================================================
+// UPLOAD MONTH MANAGEMENT
+// ============================================================
+let _upMode='range';
+let _upPicked=new Set();
+let _upChecked=new Set(); // 삭제 선택된 정산월
+
+function setUploadMode(mode){
+  _upMode=mode;
+  document.getElementById('uprow-range').classList.toggle('inactive',mode!=='range');
+  document.getElementById('uprow-pick').classList.toggle('inactive',mode!=='pick');
+  if(mode==='pick'){_upPicked.clear();initUpPickSetup();}
+  renderUploadInfo();
+}
+function initUpPickSetup(){
+  const allYms=new Set(getMonthly().map(r=>r.y));
+  initYearSel('upPickYear',allYms);
+  renderUpPickGrid();
+}
+function renderUpPickGrid(){
+  const allYms=new Set(getMonthly().map(r=>r.y));
+  makePickGrid('upPickGrid','upPickYear',_upPicked,allYms,renderUploadInfo);
+}
+function upPickAll(){const year=document.getElementById('upPickYear')?.value||'';getMonthly().map(r=>r.y).filter(y=>y.startsWith(year)).forEach(y=>_upPicked.add(y));renderUpPickGrid();renderUploadInfo();}
+function upPickClear(){const year=document.getElementById('upPickYear')?.value||'';[..._upPicked].filter(y=>y.startsWith(year)).forEach(y=>_upPicked.delete(y));renderUpPickGrid();renderUploadInfo();}
+
 function renderUploadInfo(){
   const all=getMonthly();
-  document.getElementById('uploadedMonths').innerHTML=`<p style="font-size:13px;color:var(--text2);margin-bottom:12px">현재 ${all.length}개 정산월 데이터 보유</p>`+
-    all.map(r=>`<span class="badge badge-green" style="margin-right:6px">${fmt(r.y)}</span>`).join('')+
-    `<p style="font-size:12px;color:var(--text3);margin-top:12px">기본 내장: 2025.12 ~ 2026.05 / 업로드: ${extraMonthly.length}건</p>`;
+  const allYms=all.map(r=>r.y);
+
+  // 셀렉트 초기화
+  const fromSel=document.getElementById('upRangeFrom');
+  const toSel=document.getElementById('upRangeTo');
+  if(fromSel&&fromSel.options.length===0){
+    allYms.forEach(y=>{fromSel.appendChild(new Option(fmt(y),y));toSel.appendChild(new Option(fmt(y),y));});
+    if(allYms.length){fromSel.value=allYms[0];toSel.value=allYms[allYms.length-1];}
+  }
+
+  // 필터 적용
+  let filtered=all;
+  if(_upMode==='range'){
+    const from=fromSel?.value||allYms[0];
+    const to=toSel?.value||allYms[allYms.length-1];
+    filtered=all.filter(r=>r.y>=from&&r.y<=to);
+  } else if(_upPicked.size>0){
+    filtered=all.filter(r=>_upPicked.has(r.y));
+  }
+
+  const builtIn=new Set(BASE.monthly.map(r=>r.y));
+
+  document.getElementById('uploadMonthCount').textContent=`전체 ${all.length}개월`;
+
+  // 체크박스 상태 업데이트
+  const allChecked=filtered.length>0&&filtered.every(r=>_upChecked.has(r.y));
+  const chkAll=document.getElementById('upCheckAll');
+  if(chkAll) chkAll.checked=allChecked;
+
+  const cnt=_upChecked.size;
+  const cntEl=document.getElementById('upCheckedCount');
+  if(cntEl) cntEl.textContent=cnt>0?`${cnt}개월 선택됨`:'';
+
+  // 테이블 렌더
+  const rew=getRewards(),bil=getBilling(),pay=getPayments(),net=getNetwork();
+  document.getElementById('tbodyUploadMonths').innerHTML=filtered.map(r=>{
+    const isBuiltIn=builtIn.has(r.y);
+    const rAmt=rew.filter(x=>x.y===r.y).reduce((s,x)=>s+(x.amt||0),0);
+    const bAmt=bil.filter(x=>x.y===r.y).reduce((s,x)=>s+(x.nb||0),0);
+    const pAmt=pay.filter(x=>x.y===r.y).reduce((s,x)=>s+(x.p||0),0);
+    const nAmt=net.filter(x=>x.y===r.y).reduce((s,x)=>s+(x.fee||0),0);
+    const checked=_upChecked.has(r.y);
+    return`<tr style="${checked?'background:rgba(26,110,245,.06)':''}">
+      <td style="text-align:center">
+        ${isBuiltIn
+          ?`<span style="font-size:10px;color:var(--text3)" title="기본 내장 데이터">🔒</span>`
+          :`<input type="checkbox" ${checked?'checked':''} onchange="toggleUpMonth('${r.y}',this.checked)" style="accent-color:var(--accent)">`}
+      </td>
+      <td><strong>${fmt(r.y)}</strong>${isBuiltIn?`<span style="font-size:10px;color:var(--text3);margin-left:6px">내장</span>`:''}</td>
+      <td class="num" style="color:var(--text2)">${isBuiltIn?'기본':'업로드'}</td>
+      <td class="num c-orange">${rAmt?won(rAmt):'—'}</td>
+      <td class="num">${bAmt?won(bAmt):'—'}</td>
+      <td class="num c-green">${pAmt?won(pAmt):'—'}</td>
+      <td class="num" style="color:var(--text2)">${nAmt?won(nAmt)+'원':'—'}</td>
+    </tr>`;
+  }).join('');
 }
+
+function toggleUpMonth(ym,checked){
+  if(checked) _upChecked.add(ym);
+  else _upChecked.delete(ym);
+  const cntEl=document.getElementById('upCheckedCount');
+  if(cntEl) cntEl.textContent=_upChecked.size>0?`${_upChecked.size}개월 선택됨`:'';
+  const chkAll=document.getElementById('upCheckAll');
+  if(chkAll){
+    const filtered=getMonthly().filter(r=>!new Set(BASE.monthly.map(x=>x.y)).has(r.y));
+    chkAll.checked=filtered.length>0&&filtered.every(r=>_upChecked.has(r.y));
+  }
+}
+
+function toggleAllUpMonths(checked){
+  const builtIn=new Set(BASE.monthly.map(r=>r.y));
+  getMonthly().filter(r=>!builtIn.has(r.y)).forEach(r=>{
+    if(checked) _upChecked.add(r.y);
+    else _upChecked.delete(r.y);
+  });
+  renderUploadInfo();
+}
+
+function deleteCheckedMonths(){
+  if(_upChecked.size===0){alert('삭제할 정산월을 선택해주세요.');return;}
+  const list=[..._upChecked].sort().map(fmt).join(', ');
+  if(!confirm(`다음 정산월 데이터를 삭제할까요?\n\n${list}`))return;
+
+  _upChecked.forEach(ym=>{
+    extraMonthly=extraMonthly.filter(r=>r.y!==ym);
+    extraRewards=extraRewards.filter(r=>r.y!==ym);
+    extraBilling=extraBilling.filter(r=>r.y!==ym);
+    extraPayments=extraPayments.filter(r=>r.y!==ym);
+    extraNetwork=extraNetwork.filter(r=>r.y!==ym);
+  });
+  _upChecked.clear();
+  try{localStorage.setItem('dm_extra',JSON.stringify({monthly:extraMonthly,rewards:extraRewards,billing:extraBilling,payments:extraPayments,network:extraNetwork}));}catch(e){}
+  if(typeof _saveRemoteData==='function') _saveRemoteData();
+  document.getElementById('upRangeFrom').innerHTML='';
+  document.getElementById('upRangeTo').innerHTML='';
+  renderUploadInfo();
+  document.getElementById('uploadLog').textContent=`✅ ${list} 삭제 완료`;
+}
+
 function exportData(){
   const blob=new Blob([JSON.stringify({monthly:getMonthly(),rewards:getRewards(),billing:getBilling(),payments:getPayments(),network:getNetwork()},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='더마일스_데이터_'+new Date().toISOString().substring(0,10)+'.json';a.click();
 }
 function clearExtraData(){
-  if(!confirm('업로드된 추가 데이터를 삭제할까요?'))return;
+  if(!confirm('업로드된 추가 데이터를 모두 삭제할까요?'))return;
   extraMonthly=[];extraRewards=[];extraBilling=[];extraPayments=[];extraNetwork=[];
+  _upChecked.clear();
   try{localStorage.removeItem('dm_extra')}catch(e){}
+  document.getElementById('upRangeFrom').innerHTML='';
+  document.getElementById('upRangeTo').innerHTML='';
+  if(typeof _saveRemoteData==='function') _saveRemoteData();
   renderUploadInfo();
   document.getElementById('uploadLog').textContent='초기화 완료.';
 }
