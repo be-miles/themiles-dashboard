@@ -1223,6 +1223,7 @@ function renderProfit(){
     <td class="num c-red" style="font-weight:700">${won(sumDw)}</td>
     <td class="num ${sumProfit>=0?'c-green':'c-red'}" style="font-weight:700">${won(sumProfit)}</td>
     <td class="num" style="font-weight:700">${sumMargin.toFixed(1)}%</td>`;
+}
 
 function renderProfitPlanChart(){
   const n=parseInt(document.getElementById('profitTopN')?.value||'10');
