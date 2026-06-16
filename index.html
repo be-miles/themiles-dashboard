@@ -1273,9 +1273,9 @@ function renderReward(){
   mkChart('chartRewardMonth',{type:'bar',data:{labels:months.map(fmt),datasets:[{label:'장려금 합계',data:months.map(m=>monthMap[m]),backgroundColor:'rgba(26,110,245,.7)',borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}}});
   renderRewardPlanChart();
   // table
-  document.getElementById('tbodyReward').innerHTML=data.map(r=>`
+  document.getElementById('tbodyReward').innerHTML=data.map((r,i)=>`
     <tr onclick="showSubscriber('${r.cn}')" style="cursor:pointer">
-      <td class="dim">${r.no}</td>
+      <td class="dim">${i+1}</td>
       <td><strong>${fmt(r.y)}</strong></td>
       <td><span class="tag ${r.t==='M+1'?'tag-blue':r.t==='M+3'?'tag-green':'tag-orange'}">${r.t}</span></td>
       <td><span class="tag">${r.tp||''}</span></td>
@@ -1608,12 +1608,21 @@ function handleUpload(e){
           const ym=String(r[yC]||'').trim();
           if(!/^\d{6}$/.test(ym))continue;
           const dt=dtC>=0?xlDate(r[dtC]):null;
+          // amt = 정책1+정책2+정책3+정책4 합계 (이번 정산월 실제 지급액)
+          // P열(가입일시보상금 계)은 총 정책금액이므로 사용 안 함
+          let amt=0;
+          if(amtC>=0){
+            for(let c=amtC+1;c<=amtC+4;c++){
+              if(r[c]!==null&&r[c]!==undefined) amt+=Math.round(Number(r[c]||0));
+            }
+            if(amt===0) amt=Math.round(Number(r[amtC]||0)); // 정책 컬럼 모두 0이면 P열 fallback
+          }
           added.rewards.push({
             y:ym,t:String(r[tC]||''),tp:String(r[tpC]||''),
             cn:String(r[cnC]||''),ct:String(r[ctC]||''),
             dt:dt?dt.toISOString().substring(0,10):null,ec:null,
             nm:String(r[nmC]||''),pl:String(r[plC]||''),
-            amt:amtC>=0?Math.round(Number(r[amtC]||0)):0,
+            amt,
             p1:amtC>=0?Math.round(Number(r[amtC+1]||0)):0,
             p2:amtC>=0?Math.round(Number(r[amtC+2]||0)):0
           });
@@ -1758,7 +1767,9 @@ function handleUpload(e){
       const existNetYm=new Set(NETWORK_BASE.map(r=>r.y));
       added.network=added.network.filter(r=>!existNetYm.has(r.y));
       extraNetwork=[...extraNetwork,...added.network];
-      // 정책 dedup (group+ym+name 기준)
+      // 업로드 타임스탬프
+      const _uploadedAt=new Date().toLocaleString('sv').replace('T',' ');
+      added.monthly.forEach(m=>m._uploadedAt=_uploadedAt);
       const existPol=new Set([...POLICIES,...extraPolicies].map(p=>`${p.group}|${p.ym}|${p.name}`));
       added.policies=added.policies.filter(p=>!existPol.has(`${p.group}|${p.ym}|${p.name}`));
       extraPolicies=[...extraPolicies,...added.policies];
@@ -1852,7 +1863,10 @@ function renderUploadInfo(){
       <td style="text-align:center">
         <input type="checkbox" ${checked?'checked':''} onchange="toggleUpMonth('${r.y}',this.checked)" style="accent-color:var(--accent)">
       </td>
-      <td><strong>${fmt(r.y)}</strong>${isBuiltIn?`<span style="font-size:10px;color:var(--text3);margin-left:6px">내장 ${_BUILD_TIME}</span>`:''}</td>
+      <td><strong>${fmt(r.y)}</strong>${isBuiltIn
+        ?`<span style="font-size:10px;color:var(--text3);margin-left:6px">내장 ${_BUILD_TIME}</span>`
+        :r._uploadedAt?`<span style="font-size:10px;color:var(--text3);margin-left:6px">업로드 ${r._uploadedAt}</span>`:''
+      }</td>
       <td class="num" style="color:var(--text2)">${isBuiltIn?'기본':'업로드'}</td>
       <td class="num c-orange">${rAmt?won(rAmt):'—'}</td>
       <td class="num">${bAmt?won(bAmt):'—'}</td>
