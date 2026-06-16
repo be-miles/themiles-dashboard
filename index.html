@@ -580,7 +580,8 @@ select.inp{cursor:pointer}
 
     <!-- ===== 청구/수납 ===== -->
     <div class="panel" id="panel-billing">
-      <div class="section" style="margin-bottom:0;border-bottom:none;border-radius:0">
+      <div class="kpi-grid" id="billingKpi"></div>
+      <div class="section" style="margin-bottom:12px;border-radius:var(--radius)">
         <!-- 기간 선택 행 -->
         <div class="filter-row" id="blrow-range">
           <label class="radio-label">
@@ -607,7 +608,13 @@ select.inp{cursor:pointer}
           <div id="blPickGrid" style="display:flex;gap:4px;align-items:flex-end;width:100%;padding-left:4px"></div>
         </div>
       </div>
-      <div class="billing-wrap" id="billingTableWrap" style="flex:1;overflow-y:auto;min-height:0"></div>
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div class="section-head">
+          <span class="section-title">청구 / 수납 상세</span>
+          <span style="font-size:11px;color:var(--text2)">청구 + 수납 + 미수납 통합</span>
+        </div>
+        <div class="billing-wrap" id="billingTableWrap" style="flex:1;overflow-y:auto;min-height:0"></div>
+      </div>
     </div>
 
     <!-- ===== 망이용대가 ===== -->
@@ -1399,6 +1406,13 @@ function renderBilling(){
   billing.forEach(r=>{tot.b+=r.b||0;tot.d+=r.d||0;tot.nb+=r.nb||0;});
   payments.forEach(r=>{tot.p+=r.p||0;});
   const totUnpaid=tot.nb-tot.p;
+
+  document.getElementById('billingKpi').innerHTML=`
+    <div class="kpi"><div class="kpi-label">조회 건수</div><div class="kpi-value c-blue">${billing.length+payOnly.length}건</div><div class="kpi-sub">청구 ${billing.length}건 · 수납전용 ${payOnly.length}건</div></div>
+    <div class="kpi"><div class="kpi-label">실청구금 합계</div><div class="kpi-value">${won(tot.nb)}</div></div>
+    <div class="kpi"><div class="kpi-label">실수납 합계</div><div class="kpi-value c-green">${won(tot.p)}</div></div>
+    <div class="kpi"><div class="kpi-label">미수납 합계</div><div class="kpi-value ${totUnpaid>0?'c-red':'c-green'}">${won(totUnpaid)}</div></div>
+  `;
 
   const wrap=document.getElementById('billingTableWrap');
   wrap.innerHTML=`<table>
@@ -2392,7 +2406,8 @@ function renderSubscriberTable(){
   const gP=subs.reduce((s,sub)=>s+sub.ymKeys.reduce((ss,y)=>ss+(monthly[sub.cn]?.[y]?.payment||0),0),0);
   const gN=subs.reduce((s,sub)=>s+sub.ymKeys.reduce((ss,y)=>ss+(monthly[sub.cn]?.[y]?.net||0),0),0);
   const gF=subs.reduce((s,sub)=>s+sub.ymKeys.reduce((ss,y)=>ss+(monthly[sub.cn]?.[y]?.fee||0),0),0);
-  html+=`<tr style="background:rgba(26,110,245,.07);border-top:2px solid var(--border)">
+
+  html+=`</tbody><tfoot><tr class="tfoot-row" style="background:rgba(26,110,245,.07)">
     <td colspan="8" style="padding:10px 12px;font-weight:800;font-size:13px">전체 합계 — ${totSubs}명</td>
     <td class="num" style="font-weight:800;color:var(--accent3)">${won(totReward)}</td>
     <td class="num" style="font-weight:800">${won(totBilling)}</td>
@@ -2400,9 +2415,7 @@ function renderSubscriberTable(){
     <td class="num" style="font-weight:800;color:var(--text2)">${won(gN)}</td>
     <td class="num" style="font-weight:800;color:var(--text2)">${won(gF)}</td>
     <td class="num" style="font-weight:800;color:var(--text2)">0원</td>
-  </tr>`;
-
-  html+=`</tbody></table>`;
+  </tr></tfoot></table>`;
   wrap.innerHTML=html;
 }
 
@@ -3196,7 +3209,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-16 16:36:41';
+const _BUILD_TIME = '2026-06-16 17:05:38';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
