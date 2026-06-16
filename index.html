@@ -21,8 +21,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .sidebar{width:220px;background:var(--surface);border-right:1.5px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100;overflow-y:auto}
 .main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:50;flex-shrink:0}
-.content{padding:24px;flex:1;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;scrollbar-width:none;-ms-overflow-style:none}
-.content::-webkit-scrollbar{display:none}
+.content{padding:24px;flex:1;overflow:hidden;box-sizing:border-box}
+
 .logo{padding:20px 20px 14px;border-bottom:1.5px solid var(--border)}
 .logo-name{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.4px}
 .logo-sub{font-size:11px;color:var(--text2);margin-top:2px}
@@ -48,11 +48,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .section-sub{font-size:12px;color:var(--text2);margin-left:6px}
 /* 테이블 공통 — 컬럼 너비는 내용 기준, 여백 균일 */
 .table-wrap{overflow-x:auto;max-height:calc(100vh - 300px);overflow-y:auto}
-.table-wrap.fluid{max-height:calc(100vh - 300px)}
-.billing-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 220px)}
+.table-wrap.fluid{}
+.billing-wrap{display:flex;flex-direction:column;min-height:0;overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 220px)}
 table{border-collapse:collapse;font-size:13px;width:auto;min-width:100%}
 thead th{background:var(--surface);padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);white-space:nowrap;position:sticky;top:0;z-index:2;box-shadow:0 1px 0 var(--border)}
 thead th.num{text-align:right}
+thead th{position:sticky;top:0;z-index:2;background:var(--surface)}
+tfoot td,tfoot th{position:sticky;bottom:0;z-index:2;background:var(--surface)}
+.tfoot-row td,.tfoot-row th{position:sticky;bottom:0;z-index:2;background:var(--surface)}
 tbody tr{border-top:1px solid var(--border);transition:background .1s}
 tbody tr:hover{background:var(--surface2)}
 tbody td{padding:9px 14px;white-space:nowrap;font-size:13px}
@@ -82,7 +85,7 @@ select.inp{cursor:pointer}
 .btn-ghost{background:var(--surface);color:var(--text2);border:1.5px solid var(--border)}
 .btn-ghost:hover{background:var(--surface2);color:var(--text)}
 .btn-green{background:var(--accent2)}
-.panel{display:none}.panel.active{display:block}
+.panel{display:none}.panel.active{display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;background:var(--surface);margin-bottom:16px}
 .upload-zone:hover{border-color:var(--accent);background:rgba(26,110,245,.04)}
 .upload-zone input{display:none}
@@ -135,7 +138,7 @@ select.inp{cursor:pointer}
   .shell{overflow-x:hidden;width:100%;max-width:100vw}
   .main{overflow-x:hidden;width:100%}
   .content{overflow-x:hidden;padding-bottom:68px;scrollbar-width:none}
-  .content::-webkit-scrollbar{display:none}
+  
   /* 사이드바 → 좌측 드로어 */
   .sidebar{display:flex!important;transform:translateX(-100%);transition:transform .25s ease;z-index:200;box-shadow:4px 0 20px rgba(0,0,0,.15)}
   .sidebar.open{transform:translateX(0)}
@@ -170,7 +173,7 @@ select.inp{cursor:pointer}
 
   /* 테이블: 래퍼가 스크롤 담당 */
   .table-wrap{max-height:55vh;overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
-  .billing-wrap{max-height:calc(100vh - 180px);overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .billing-wrap{display:flex;flex-direction:column;min-height:0;max-height:calc(100vh - 180px);overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{font-size:12px;min-width:max-content;width:auto}
   thead th{padding:7px 9px;font-size:10px;white-space:nowrap}
   tbody td{padding:6px 9px;font-size:12px;white-space:nowrap}
@@ -426,6 +429,7 @@ select.inp{cursor:pointer}
             <th class="num">수입합계</th><th class="num">도매대가</th><th class="num">순이익</th><th class="num">마진율</th>
           </tr></thead>
           <tbody id="tbodyProfit"></tbody>
+          <tfoot><tr class="tfoot-row" id="tfootProfit"></tr></tfoot>
         </table></div>
       </div>
     </div>
@@ -493,7 +497,7 @@ select.inp{cursor:pointer}
             <select class="inp" id="rewardType" onchange="renderReward()"><option value="">구분 전체</option><option>M+1</option><option>M+3</option><option>M+6</option></select>
           </div>
         </div>
-        <div class="table-wrap" style="max-height:calc(100vh - 280px);overflow-y:auto"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
           <thead><tr>
             <th>NO</th><th>정산년월</th><th>구분</th><th>유형</th><th>고객명</th>
             <th>요금제</th><th>개통일</th><th class="num">장려금</th><th>계약번호</th><th>비고</th>
@@ -544,7 +548,7 @@ select.inp{cursor:pointer}
       </div>
 
       <!-- 가입자 목록 테이블 (셀 병합 스타일) -->
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span><span class="section-title">가입자별 월별 현황</span><span class="section-sub" id="subCount"></span></span>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -563,7 +567,7 @@ select.inp{cursor:pointer}
             </select>
           </div>
         </div>
-        <div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 280px);border-radius:0 0 var(--radius) var(--radius)" id="subTableWrap">
+        <div style="overflow-x:auto;overflow-y:auto;flex:1;min-height:0;border-radius:0 0 var(--radius) var(--radius)" id="subTableWrap">
           <!-- JS로 렌더링 -->
         </div>
       </div>
@@ -598,7 +602,7 @@ select.inp{cursor:pointer}
           <div id="blPickGrid" style="display:flex;gap:4px;align-items:flex-end;width:100%;padding-left:4px"></div>
         </div>
       </div>
-      <div class="billing-wrap" id="billingTableWrap"></div>
+      <div class="billing-wrap" id="billingTableWrap" style="flex:1;overflow-y:auto;min-height:0"></div>
     </div>
 
     <!-- ===== 망이용대가 ===== -->
@@ -662,7 +666,7 @@ select.inp{cursor:pointer}
           <span class="section-title">망이용대가 상세</span>
           <span style="font-size:11px;color:var(--text2)">※ 모든 금액은 VAT 별도</span>
         </div>
-        <div class="table-wrap" style="max-height:calc(100vh - 260px);overflow-y:auto"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
           <thead><tr>
             <th>정산년월</th><th>계약번호</th><th>요금제</th>
             <th class="num">가입자당단가</th><th class="num">음성종량</th><th class="num">영상종량</th>
@@ -679,7 +683,7 @@ select.inp{cursor:pointer}
     <!-- ===== 장려금 정책 ===== -->
     <div class="panel" id="panel-policy">
       <div class="kpi-grid" id="policyKpi"></div>
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">장려금 정책 현황</span>
           <select class="inp" id="policyGroupFilter" onchange="renderPolicy()" style="font-size:12px;padding:5px 10px">
@@ -712,7 +716,7 @@ select.inp{cursor:pointer}
             <div id="plPickGrid" style="display:flex;gap:4px;align-items:flex-end;width:100%;padding-left:4px"></div>
           </div>
         </div>
-        <div class="table-wrap fluid"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
           <thead><tr>
             <th>그룹</th><th>가입월</th><th>정책명</th><th>적용기간</th>
             <th class="num">총 장려금</th><th>지급종류</th>
@@ -739,7 +743,7 @@ select.inp{cursor:pointer}
             <option value="">전체 그룹</option>
           </select>
         </div>
-        <div class="table-wrap fluid"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
           <thead><tr>
             <th>브랜드사</th><th>그룹</th><th>요금제명</th><th>데이터용량</th>
           </tr></thead>
@@ -791,6 +795,7 @@ select.inp{cursor:pointer}
             <th class="num">장려금</th><th class="num">청구</th><th class="num">수납</th>
           </tr></thead>
           <tbody id="tbodyBrandSub"></tbody>
+          <tfoot><tr class="tfoot-row" id="tfootBrandSub"></tr></tfoot>
         </table></div>
       </div>
     </div>
@@ -798,7 +803,7 @@ select.inp{cursor:pointer}
     <!-- ===== 정산표 ===== -->
     <div class="panel" id="panel-settlement">
       <div class="kpi-grid" id="settlementKpi"></div>
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
           <span class="section-title">🧾 정산표 — VPI0007 · 더마일스</span>
           <div style="display:flex;gap:8px;align-items:center">
@@ -834,7 +839,7 @@ select.inp{cursor:pointer}
           </div>
         </div>
 
-        <div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px)">
+        <div style="overflow-x:auto;overflow-y:auto;flex:1;min-height:0">
           <table id="settlementTable" style="border-collapse:collapse;font-size:13px;min-width:max-content;width:auto"></table>
         </div>
       </div>
@@ -1202,7 +1207,21 @@ function renderProfit(){
     <td class="num ${profit>=0?'c-green':'c-red'}">${won(profit)}</td>
     <td class="num">${margin.toFixed(1)}%</td>
   </tr>`}).join('');
-}
+  // 합계 행
+  const sumBo=data.reduce((s,r)=>s+r.bo,0);
+  const sumP=data.reduce((s,r)=>s+r.p,0);
+  const sumRev=sumBo+sumP;
+  const sumDw=data.reduce((s,r)=>s+r.dw,0);
+  const sumProfit=sumRev-sumDw;
+  const sumMargin=sumRev>0?(sumProfit/sumRev*100):0;
+  document.getElementById('tfootProfit').innerHTML=`
+    <td><strong>합계</strong></td>
+    <td class="num c-blue" style="font-weight:700">${won(sumBo)}</td>
+    <td class="num" style="font-weight:700">${won(sumP)}</td>
+    <td class="num" style="font-weight:700">${won(sumRev)}</td>
+    <td class="num c-red" style="font-weight:700">${won(sumDw)}</td>
+    <td class="num ${sumProfit>=0?'c-green':'c-red'}" style="font-weight:700">${won(sumProfit)}</td>
+    <td class="num" style="font-weight:700">${sumMargin.toFixed(1)}%</td>`;
 
 function renderProfitPlanChart(){
   const n=parseInt(document.getElementById('profitTopN')?.value||'10');
@@ -2718,7 +2737,8 @@ function _renderBrandContent(brand){
   });
   bBilling.forEach(r=>{if(siMap[r.cn])siMap[r.cn].billing+=(r.nb||0);});
   bPayments.forEach(r=>{if(siMap[r.cn])siMap[r.cn].payment+=(r.p||0);});
-  document.getElementById('tbodyBrandSub').innerHTML=Object.values(siMap).sort((a,b)=>b.reward-a.reward).map(s=>`
+  const subs=Object.values(siMap).sort((a,b)=>b.reward-a.reward);
+  document.getElementById('tbodyBrandSub').innerHTML=subs.map(s=>`
     <tr>
       <td style="font-size:12px;color:var(--text2)">${s.cn}</td>
       <td>${s.nm||'—'}</td>
@@ -2729,6 +2749,14 @@ function _renderBrandContent(brand){
       <td class="num">${won(s.billing)}</td>
       <td class="num c-green">${won(s.payment)}</td>
     </tr>`).join('');
+  const totR=subs.reduce((a,s)=>a+s.reward,0);
+  const totB=subs.reduce((a,s)=>a+s.billing,0);
+  const totP=subs.reduce((a,s)=>a+s.payment,0);
+  document.getElementById('tfootBrandSub').innerHTML=`
+    <td colspan="5" style="font-weight:700">합계 ${subs.length}명</td>
+    <td class="num c-orange" style="font-weight:700">${won(totR)}</td>
+    <td class="num" style="font-weight:700">${won(totB)}</td>
+    <td class="num c-green" style="font-weight:700">${won(totP)}</td>`;
 }
 
 // ============================================================
