@@ -45,6 +45,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .c-blue{color:var(--accent)}.c-green{color:var(--accent2)}.c-orange{color:var(--accent3)}.c-red{color:var(--accent4)}
 .section{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
 .section-head{padding:14px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+/* 표 엑셀 다운로드 메뉴 (⋮) */
+.tbl-menu{position:relative;flex-shrink:0}
+.tbl-menu-btn{width:26px;height:26px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;letter-spacing:-1px}
+.tbl-menu-btn:hover{background:var(--surface2);color:var(--text)}
+.tbl-menu-dropdown{display:none;position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.14);min-width:148px;z-index:60;overflow:hidden}
+.tbl-menu.open .tbl-menu-dropdown{display:block}
+.tbl-menu-item{display:flex;align-items:center;gap:7px;width:100%;padding:9px 14px;font-size:12.5px;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap}
+.tbl-menu-item:hover{background:var(--surface)}
 .section-title{font-size:14px;font-weight:700}
 .section-sub{font-size:12px;color:var(--text2);margin-left:6px}
 /* 테이블 공통 — 컬럼 너비는 내용 기준, 여백 균일 */
@@ -359,7 +367,7 @@ select.inp{cursor:pointer}
         </div>
       </div>
       <div class="section">
-        <div class="section-head"><span class="section-title">월별 총괄 현황</span></div>
+        <div class="section-head"><span class="section-title">월별 총괄 현황</span><div class="tbl-menu" id="menuOv"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuOv',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblOverview','월별개요')">📥 엑셀 다운로드</button></div></div></div>
         <div class="table-wrap"><table id="tblOverview">
           <thead><tr>
             <th>정산년월</th><th>가입년월</th><th class="num">보상금</th>
@@ -427,8 +435,8 @@ select.inp{cursor:pointer}
         </div>
       </div>
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-        <div class="section-head"><span class="section-title">월별 수익 현황</span></div>
-        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
+        <div class="section-head"><span class="section-title">월별 수익 현황</span><div class="tbl-menu" id="menuPr"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuPr',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblProfit','수익분석')">📥 엑셀 다운로드</button></div></div></div>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblProfit">
           <thead><tr>
             <th>정산년월</th><th class="num">가입보상금</th><th class="num">실수납</th>
             <th class="num">수입합계</th><th class="num">도매대가</th><th class="num">순이익</th><th class="num">마진율</th>
@@ -495,14 +503,17 @@ select.inp{cursor:pointer}
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span><span class="section-title">장려금 내역</span><span class="section-sub" id="rewardCount"></span></span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <div class="filter-bar">
             <input class="inp" id="rewardSearch" placeholder="이름·계약번호 검색" oninput="renderReward()">
             <select class="inp" id="rewardYm" onchange="renderReward()"><option value="">전체 정산월</option></select>
             <select class="inp" id="rewardPlan" onchange="renderReward()"><option value="">전체 요금제</option></select>
             <select class="inp" id="rewardType" onchange="renderReward()"><option value="">구분 전체</option><option>M+1</option><option>M+3</option><option>M+6</option></select>
           </div>
+          <div class="tbl-menu" id="menuRw"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuRw',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblReward','장려금내역')">📥 엑셀 다운로드</button></div></div>
+          </div>
         </div>
-        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblReward">
           <thead><tr>
             <th>NO</th><th>정산년월</th><th>구분</th><th>유형</th><th>고객명</th>
             <th>요금제</th><th>개통일</th><th class="num">장려금</th><th>계약번호</th><th>비고</th>
@@ -570,6 +581,7 @@ select.inp{cursor:pointer}
               <option value="missing">데이터 불일치만</option>
               <option value="no_name">이름 미확인만</option>
             </select>
+            <div class="tbl-menu" id="menuSub"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuSub',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblSubscriber','가입자조회')">📥 엑셀 다운로드</button></div></div>
           </div>
         </div>
         <div style="overflow-x:auto;overflow-y:auto;flex:1;min-height:0;border-radius:0 0 var(--radius) var(--radius)" id="subTableWrap">
@@ -611,7 +623,10 @@ select.inp{cursor:pointer}
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">청구 / 수납 상세</span>
+          <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:11px;color:var(--text2)">청구 + 수납 + 미수납 통합</span>
+          <div class="tbl-menu" id="menuBl"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuBl',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblBilling','청구수납')">📥 엑셀 다운로드</button></div></div>
+          </div>
         </div>
         <div class="billing-wrap" id="billingTableWrap" style="flex:1;overflow-y:auto;min-height:0"></div>
       </div>
@@ -676,9 +691,12 @@ select.inp{cursor:pointer}
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">망이용대가 상세</span>
+          <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:11px;color:var(--text2)">※ 모든 금액은 VAT 별도</span>
+          <div class="tbl-menu" id="menuNw"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuNw',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblNetwork','망이용대가')">📥 엑셀 다운로드</button></div></div>
+          </div>
         </div>
-        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblNetwork">
           <thead><tr>
             <th>정산년월</th><th>계약번호</th><th>요금제</th>
             <th class="num">가입자당단가</th><th class="num">음성종량</th><th class="num">영상종량</th>
@@ -698,9 +716,12 @@ select.inp{cursor:pointer}
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">장려금 정책 현황</span>
+          <div style="display:flex;align-items:center;gap:8px">
           <select class="inp" id="policyGroupFilter" onchange="renderPolicy()" style="font-size:12px;padding:5px 10px">
             <option value="">전체 그룹</option>
           </select>
+          <div class="tbl-menu" id="menuPl"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuPl',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblPolicy','장려금정책')">📥 엑셀 다운로드</button></div></div>
+          </div>
         </div>
         <!-- 가입월 인라인 필터 -->
         <div style="border-top:1.5px solid var(--border)">
@@ -728,7 +749,7 @@ select.inp{cursor:pointer}
             <div id="plPickGrid" style="display:flex;gap:4px;align-items:flex-end;width:100%;padding-left:4px"></div>
           </div>
         </div>
-        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblPolicy">
           <thead><tr>
             <th>그룹</th><th>가입월</th><th>정책명</th><th>적용기간</th>
             <th class="num">총 장려금</th><th>지급종류</th>
@@ -745,7 +766,10 @@ select.inp{cursor:pointer}
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">요금제 그룹</span>
+          <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:12px;color:var(--text2)" id="plangroupCount"></span>
+          <div class="tbl-menu" id="menuPg"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuPg',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblPlanGroup','요금제그룹')">📥 엑셀 다운로드</button></div></div>
+          </div>
         </div>
         <div style="padding:10px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
           <select class="inp" id="plangroupBrandFilter" onchange="renderPlanGroup()" style="font-size:12px;padding:5px 10px;min-width:140px">
@@ -755,7 +779,7 @@ select.inp{cursor:pointer}
             <option value="">전체 그룹</option>
           </select>
         </div>
-        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblPlanGroup">
           <thead><tr>
             <th>브랜드사</th><th>그룹</th><th>요금제명</th><th>데이터용량</th>
           </tr></thead>
@@ -788,8 +812,8 @@ select.inp{cursor:pointer}
       </div>
 
       <div class="section">
-        <div class="section-head"><span class="section-title">요금제별 정산 현황</span></div>
-        <div class="table-wrap fluid"><table>
+        <div class="section-head"><span class="section-title">요금제별 정산 현황</span><div class="tbl-menu" id="menuBr"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuBr',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblBrand','브랜드별요금제정산')">📥 엑셀 다운로드</button></div></div></div>
+        <div class="table-wrap fluid"><table id="tblBrand">
           <thead><tr>
             <th>요금제</th><th>그룹</th><th>데이터</th>
             <th class="num">가입자 수</th><th class="num">장려금 합계</th>
@@ -800,8 +824,8 @@ select.inp{cursor:pointer}
         </table></div>
       </div>
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-        <div class="section-head"><span class="section-title">가입자 목록</span><span class="section-sub" id="brandSubCount"></span></div>
-        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
+        <div class="section-head"><span class="section-title">가입자 목록</span><div style="display:flex;align-items:center;gap:10px"><span class="section-sub" id="brandSubCount"></span><div class="tbl-menu" id="menuBrSub"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuBrSub',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblBrandSub','브랜드별가입자목록')">📥 엑셀 다운로드</button></div></div></div></div>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblBrandSub">
           <thead><tr>
             <th>계약번호</th><th>고객명</th><th>요금제</th><th>개통일</th><th>해지일</th>
             <th class="num">장려금</th><th class="num">청구</th><th class="num">수납</th>
@@ -821,6 +845,7 @@ select.inp{cursor:pointer}
           <div style="display:flex;gap:8px;align-items:center">
             <span style="font-size:11px;color:var(--text2)">Excel 대조</span>
             <div id="settlementMatchBadge"></div>
+            <div class="tbl-menu" id="menuSet"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuSet',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('settlementTable','정산표')">📥 엑셀 다운로드</button></div></div>
           </div>
         </div>
 
@@ -876,7 +901,10 @@ select.inp{cursor:pointer}
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">📋 업로드된 정산월 목록</span>
+          <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:12px;color:var(--text2)" id="uploadMonthCount"></span>
+          <div class="tbl-menu" id="menuUp"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuUp',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('uploadMonthTable','정산월목록')">📥 엑셀 다운로드</button></div></div>
+          </div>
         </div>
 
         <!-- 기간/월 선택 필터 -->
@@ -1415,7 +1443,7 @@ function renderBilling(){
   `;
 
   const wrap=document.getElementById('billingTableWrap');
-  wrap.innerHTML=`<table>
+  wrap.innerHTML=`<table id="tblBilling">
     <thead><tr>
       <th>정산년월</th>
       <th>계약번호</th>
@@ -2173,7 +2201,7 @@ function renderSubscriberTable(){
     return missing.map(s=>`<span style="font-size:9px;color:var(--accent4);background:rgba(243,18,96,.08);border-radius:3px;padding:1px 4px;margin-left:2px">!${s}</span>`).join('');
   };
 
-  let html=`<table class="sub-table">
+  let html=`<table id="tblSubscriber" class="sub-table">
   <thead><tr>
     <th style="min-width:96px">계약번호</th>
     <th style="min-width:110px">청구계정</th>
@@ -2465,6 +2493,38 @@ const PLAN_ALIAS={
 // 역방향: 표시명 → 원본명 (정책 매칭에 사용)
 const PLAN_ALIAS_REV=Object.fromEntries(Object.entries(PLAN_ALIAS).map(([k,v])=>[v,k]));
 function planDisp(name){ return PLAN_ALIAS[name]||name||''; }
+
+// ============================================================
+// 표 우측상단 ⋮ 메뉴 — 엑셀 다운로드
+// ============================================================
+function toggleTblMenu(id,ev){
+  ev.stopPropagation();
+  document.querySelectorAll('.tbl-menu.open').forEach(m=>{if(m.id!==id)m.classList.remove('open')});
+  document.getElementById(id)?.classList.toggle('open');
+}
+document.addEventListener('click',()=>document.querySelectorAll('.tbl-menu.open').forEach(m=>m.classList.remove('open')));
+
+function exportTableExcel(tableId,filename){
+  document.querySelectorAll('.tbl-menu.open').forEach(m=>m.classList.remove('open'));
+  const table=document.getElementById(tableId);
+  if(!table||!table.rows||table.rows.length===0){alert('내보낼 데이터가 없습니다.');return;}
+  try{
+    const wb=XLSX.utils.table_to_book(table,{sheet:filename.substring(0,28)});
+    const today=new Date().toISOString().substring(0,10);
+    XLSX.writeFile(wb, `${filename}_${today}.xlsx`);
+  }catch(e){
+    console.error(e);
+    alert('엑셀 다운로드 중 오류가 발생했습니다.');
+  }
+}
+function tblMenuHtml(menuId,tableId,filename){
+  return `<div class="tbl-menu" id="${menuId}">
+    <button class="tbl-menu-btn" onclick="toggleTblMenu('${menuId}',event)">⋮</button>
+    <div class="tbl-menu-dropdown">
+      <button class="tbl-menu-item" onclick="exportTableExcel('${tableId}','${filename}')">📥 엑셀 다운로드</button>
+    </div>
+  </div>`;
+}
 // 원본 요금제명 반환 (alias된 이름이면 역변환, 아니면 그대로)
 function planOrig(name){ return PLAN_ALIAS_REV[name]||name||''; }
 
@@ -3209,7 +3269,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-16 17:12:59';
+const _BUILD_TIME = '2026-06-16 18:23:23';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
