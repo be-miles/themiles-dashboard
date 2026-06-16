@@ -2511,13 +2511,18 @@ function renderPolicy(){
     groups.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;gSel.appendChild(o);});
   }
 
-  // 가입월 범위 셀렉트 초기화
+  // 가입월 범위 셀렉트 — 항상 갱신 (업로드 후 새 월 반영)
   const allYms=[...new Set(getPolicies().map(p=>p.ym).filter(Boolean))].sort();
   const fromSel=document.getElementById('plRangeFrom');
   const toSel=document.getElementById('plRangeTo');
-  if(fromSel&&fromSel.options.length===0){
+  if(fromSel&&toSel){
+    const prevFrom=fromSel.value, prevTo=toSel.value;
+    fromSel.innerHTML=''; toSel.innerHTML='';
     allYms.forEach(y=>{fromSel.appendChild(new Option(fmt(y),y));toSel.appendChild(new Option(fmt(y),y));});
-    if(allYms.length){fromSel.value=allYms[0];toSel.value=allYms[allYms.length-1];}
+    if(allYms.length){
+      fromSel.value=allYms.includes(prevFrom)?prevFrom:allYms[0];
+      toSel.value=allYms.includes(prevTo)?prevTo:allYms[allYms.length-1];
+    }
   }
 
   // 가입월 필터
@@ -3155,7 +3160,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-16 09:59:55';
+const _BUILD_TIME = '2026-06-16 10:31:02';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
@@ -3240,7 +3245,7 @@ function _applyPerm(perm){
   panel.innerHTML=`
     <div class="user-panel-name">${_curUser.name||_curUser.email.split('@')[0]}</div>
     <div class="user-panel-org">${_curUser.org||''}</div>
-    <div style="font-size:10px;color:var(--text3);margin-bottom:2px">${_BUILD_TIME}</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:2px">ver. ${_BUILD_TIME}</div>
     <div class="user-panel-foot">
       <span style="color:${permColor[perm]||'var(--text2)'};font-weight:700">${permLabel[perm]||perm}</span>
       <span style="color:var(--text3)">·</span>
