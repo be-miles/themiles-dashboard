@@ -974,15 +974,16 @@ const NETWORK_BASE = [{"y":"202512","cn":"588484785","plan":"디지털 디톡스
 // ============================================================
 // STATE
 // ============================================================
-let extraMonthly=[], extraRewards=[], extraBilling=[], extraPayments=[], extraNetwork=[];
+let extraMonthly=[], extraRewards=[], extraBilling=[], extraPayments=[], extraNetwork=[], extraPolicies=[];
 let excludedBuiltIn=new Set(); // 기본 내장 데이터 중 삭제된 월
-try{const s=localStorage.getItem('dm_extra');if(s){const e=JSON.parse(s);extraMonthly=e.monthly||[];extraRewards=e.rewards||[];extraBilling=e.billing||[];extraPayments=e.payments||[];extraNetwork=e.network||[];excludedBuiltIn=new Set(e.excludedBuiltIn||[]);}}catch(e){}
+try{const s=localStorage.getItem('dm_extra');if(s){const e=JSON.parse(s);extraMonthly=e.monthly||[];extraRewards=e.rewards||[];extraBilling=e.billing||[];extraPayments=e.payments||[];extraNetwork=e.network||[];extraPolicies=e.policies||[];excludedBuiltIn=new Set(e.excludedBuiltIn||[]);}}catch(e){}
 
 function getMonthly(){return[...BASE.monthly.filter(r=>!excludedBuiltIn.has(r.y)),...extraMonthly].sort((a,b)=>a.y.localeCompare(b.y))}
 function getRewards(){return[...REWARDS_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraRewards]}
 function getBilling(){return[...BILLING_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraBilling]}
 function getPayments(){return[...PAYMENTS_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraPayments]}
 function getNetwork(){return[...NETWORK_BASE.filter(r=>!excludedBuiltIn.has(r.y)),...extraNetwork]}
+function getPolicies(){return[...POLICIES,...extraPolicies.filter(p=>!POLICIES.some(b=>b.group===p.group&&b.ym===p.ym&&b.name===p.name))]}
 
 let chartInstances={};
 
@@ -1561,7 +1562,7 @@ function handleUpload(e){
         return null;
       };
 
-      let added={monthly:[],rewards:[],billing:[],payments:[],network:[]};
+      let added={monthly:[],rewards:[],billing:[],payments:[],network:[],policies:[]};
 
       // 헤더에서 컬럼 위치 동적 감지 헬퍼
       const findCol=(rows,name)=>{
@@ -1674,7 +1675,47 @@ function handleUpload(e){
         }
         log.textContent+=`망이용대가: ${added.network.length}건\n`;
       }
-      // ── 총괄 시트 없을 때: 상세 데이터에서 월 요약 자동 생성 ──
+      // 장려금 정책
+      if(wb.SheetNames.includes('장려금 정책')){
+        const ws=wb.Sheets['장려금 정책'];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+        const grpC=findCol(rows,'그룹'), ymC=findCol(rows,'가입월'), nmC=findCol(rows,'정책명');
+        const pdC=findCol(rows,'정책 적용'), totC=findCol(rows,'총 장려금');
+        const typC=findCol(rows,'장려금 종류'), ruleC=findCol(rows,'장려금 지급 기준');
+        // M+N 정산월 컬럼은 row3의 'M+1월','M+3월' 등
+        let m1C=-1,m3C=-1,m6C=-1,m9C=-1,m12C=-1,m15C=-1,condC=-1;
+        for(let i=0;i<Math.min(rows.length,5);i++){
+          const r=rows[i]||[];
+          if(m1C<0){const idx=r.findIndex(c=>String(c||'').includes('M+1'));if(idx>=0)m1C=idx;}
+          if(m3C<0){const idx=r.findIndex(c=>String(c||'').includes('M+3'));if(idx>=0)m3C=idx;}
+          if(m6C<0){const idx=r.findIndex(c=>String(c||'').includes('M+6'));if(idx>=0)m6C=idx;}
+          if(m9C<0){const idx=r.findIndex(c=>String(c||'').includes('M+9'));if(idx>=0)m9C=idx;}
+          if(m12C<0){const idx=r.findIndex(c=>String(c||'').includes('M+12'));if(idx>=0)m12C=idx;}
+          if(m15C<0){const idx=r.findIndex(c=>String(c||'').includes('M+15'));if(idx>=0)m15C=idx;}
+          if(condC<0){const idx=r.findIndex(c=>String(c||'').includes('지급조건'));if(idx>=0)condC=idx;}
+        }
+        let polCount=0;
+        for(let i=0;i<rows.length;i++){
+          const r=rows[i];
+          if(!r||!r[grpC]||!r[ymC])continue;
+          const ym=String(r[ymC]).trim();
+          if(!/^\d{6}$/.test(ym))continue;
+          const p={
+            group:String(r[grpC]||''),ym,name:String(r[nmC]||''),
+            period:String(r[pdC]||''),total:String(r[totC]||'0'),
+            types:String(r[typC]||''),rule:String(r[ruleC]||''),
+            m1:m1C>=0?String(r[m1C]||''):'',m3:m3C>=0?String(r[m3C]||''):'',
+            m6:m6C>=0?String(r[m6C]||''):'',m9:m9C>=0?String(r[m9C]||''):'',
+            m12:m12C>=0?String(r[m12C]||''):'',m15:m15C>=0?String(r[m15C]||''):'',
+            cond:condC>=0?String(r[condC]||''):''
+          };
+          // 숫자로 저장된 정산월 보정
+          ['m1','m3','m6','m9','m12','m15'].forEach(k=>{if(p[k]&&/^\d+(\.\d+)?$/.test(p[k]))p[k]=String(Math.round(Number(p[k])));});
+          added.policies.push(p);
+          polCount++;
+        }
+        log.textContent+=`장려금 정책: ${polCount}건 파싱\n`;
+      }
       if(added.monthly.length===0){
         const allDetailYms=new Set([
           ...added.rewards.map(r=>r.y),
@@ -1717,9 +1758,13 @@ function handleUpload(e){
       const existNetYm=new Set(NETWORK_BASE.map(r=>r.y));
       added.network=added.network.filter(r=>!existNetYm.has(r.y));
       extraNetwork=[...extraNetwork,...added.network];
+      // 정책 dedup (group+ym+name 기준)
+      const existPol=new Set([...POLICIES,...extraPolicies].map(p=>`${p.group}|${p.ym}|${p.name}`));
+      added.policies=added.policies.filter(p=>!existPol.has(`${p.group}|${p.ym}|${p.name}`));
+      extraPolicies=[...extraPolicies,...added.policies];
       // save
       _saveLocal();
-      log.textContent+=`\n✅ 업로드 완료! 새 데이터: 총괄 ${added.monthly.length}건, 장려금 ${added.rewards.length}건, 청구 ${added.billing.length}건, 수납 ${added.payments.length}건, 망이용 ${added.network.length}건\n`;
+      log.textContent+=`\n✅ 업로드 완료! 새 데이터: 총괄 ${added.monthly.length}건, 장려금 ${added.rewards.length}건, 청구 ${added.billing.length}건, 수납 ${added.payments.length}건, 망이용 ${added.network.length}건, 정책 ${added.policies.length}건\n`;
       if(added.monthly.length===0)log.textContent+=`(이미 포함된 정산월이거나 신규 데이터 없음)\n`;
       renderUploadInfo();
       if(typeof _saveRemoteData==='function') _saveRemoteData();
@@ -1807,7 +1852,7 @@ function renderUploadInfo(){
       <td style="text-align:center">
         <input type="checkbox" ${checked?'checked':''} onchange="toggleUpMonth('${r.y}',this.checked)" style="accent-color:var(--accent)">
       </td>
-      <td><strong>${fmt(r.y)}</strong>${isBuiltIn?`<span style="font-size:10px;color:var(--text3);margin-left:6px">내장</span>`:''}</td>
+      <td><strong>${fmt(r.y)}</strong>${isBuiltIn?`<span style="font-size:10px;color:var(--text3);margin-left:6px">내장 ${_BUILD_TIME}</span>`:''}</td>
       <td class="num" style="color:var(--text2)">${isBuiltIn?'기본':'업로드'}</td>
       <td class="num c-orange">${rAmt?won(rAmt):'—'}</td>
       <td class="num">${bAmt?won(bAmt):'—'}</td>
@@ -1870,7 +1915,7 @@ function deleteCheckedMonths(){
 function _saveLocal(){
   try{localStorage.setItem('dm_extra',JSON.stringify({
     monthly:extraMonthly,rewards:extraRewards,billing:extraBilling,
-    payments:extraPayments,network:extraNetwork,
+    payments:extraPayments,network:extraNetwork,policies:extraPolicies,
     excludedBuiltIn:[...excludedBuiltIn]
   }));}catch(e){}
 }
@@ -2195,7 +2240,7 @@ function renderSubscriberTable(){
     const enrollYm=info.dt?info.dt.substring(0,7).replace('-',''):'';
     let matchPolicies=[];
     if(enrollYm&&dataGB){
-      const candidates=POLICIES.filter(p=>p.ym===enrollYm&&periodCovers(p.period,info.dt));
+      const candidates=getPolicies().filter(p=>p.ym===enrollYm&&periodCovers(p.period,info.dt));
       const covered=candidates.filter(p=>groupCoversGB(p.group,dataGB));
       if(covered.length){
         const bestSpec=Math.max(...covered.map(p=>groupSpec(p.group)));
@@ -2446,14 +2491,14 @@ function renderPlanGroup(){
 
 function renderPolicy(){
   const grpFilter=document.getElementById('policyGroupFilter')?.value||'';
-  const groups=[...new Set(POLICIES.map(p=>p.group))].filter(Boolean).sort();
+  const groups=[...new Set(getPolicies().map(p=>p.group))].filter(Boolean).sort();
   const gSel=document.getElementById('policyGroupFilter');
   if(gSel&&gSel.options.length<=1){
     groups.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;gSel.appendChild(o);});
   }
 
   // 가입월 범위 셀렉트 초기화
-  const allYms=[...new Set(POLICIES.map(p=>p.ym).filter(Boolean))].sort();
+  const allYms=[...new Set(getPolicies().map(p=>p.ym).filter(Boolean))].sort();
   const fromSel=document.getElementById('plRangeFrom');
   const toSel=document.getElementById('plRangeTo');
   if(fromSel&&fromSel.options.length===0){
@@ -2462,7 +2507,7 @@ function renderPolicy(){
   }
 
   // 가입월 필터
-  let filtered=POLICIES;
+  let filtered=getPolicies();
   if(grpFilter)filtered=filtered.filter(p=>p.group===grpFilter);
   if(_plMode==='range'){
     const from=fromSel?.value||allYms[0];
@@ -2490,7 +2535,7 @@ function renderPolicy(){
   const brands=[...new Set(PLAN_GROUP.map(p=>p.brand))];
   document.getElementById('policyKpi').innerHTML=`
     <div class="kpi"><div class="kpi-label">파트너 브랜드</div><div class="kpi-value c-green">${brands.length}개</div><div class="kpi-sub">${brands.join(' · ')}</div></div>
-    <div class="kpi"><div class="kpi-label">조회 정책 건수</div><div class="kpi-value c-orange">${filtered.length}건</div><div class="kpi-sub">전체 ${POLICIES.length}건</div></div>
+    <div class="kpi"><div class="kpi-label">조회 정책 건수</div><div class="kpi-value c-orange">${filtered.length}건</div><div class="kpi-sub">전체 ${getPolicies().length}건</div></div>
   `;
 }
 
@@ -3096,6 +3141,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
+const _BUILD_TIME = '2026-06-16 09:59:55';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
@@ -3139,6 +3185,7 @@ async function _loadRemoteData(){
       if(d.billing&&d.billing.length) extraBilling=d.billing;
       if(d.payments&&d.payments.length) extraPayments=d.payments;
       if(d.network&&d.network.length) extraNetwork=d.network;
+      if(d.policies&&d.policies.length) extraPolicies=d.policies;
     }
   }catch(e){ /* 기본 내장 데이터 사용 */ }
 }
@@ -3157,7 +3204,8 @@ async function _saveRemoteData(){
           rewards:extraRewards,
           billing:extraBilling,
           payments:extraPayments,
-          network:extraNetwork
+          network:extraNetwork,
+          policies:extraPolicies
         }
       })
     });
@@ -3178,6 +3226,7 @@ function _applyPerm(perm){
   panel.innerHTML=`
     <div class="user-panel-name">${_curUser.name||_curUser.email.split('@')[0]}</div>
     <div class="user-panel-org">${_curUser.org||''}</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:2px">${_BUILD_TIME}</div>
     <div class="user-panel-foot">
       <span style="color:${permColor[perm]||'var(--text2)'};font-weight:700">${permLabel[perm]||perm}</span>
       <span style="color:var(--text3)">·</span>
