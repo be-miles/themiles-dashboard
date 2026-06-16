@@ -6,6 +6,7 @@
 <title>더마일스 수익화 보드</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>window.onerror=function(msg,src,line){console.error('JS오류:',msg,line);if(document.getElementById('auth-loading')?.style.display!=='none')document.getElementById('auth-loading').innerHTML='<div style="color:#e53e3e;padding:20px;text-align:center">초기화 오류가 발생했습니다.<br>페이지를 새로고침 해주세요.</div>';}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -3190,7 +3191,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-16 11:20:42';
+const _BUILD_TIME = '2026-06-16 11:56:05';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
@@ -3198,6 +3199,13 @@ const _provider = new firebase.auth.GoogleAuthProvider();
 
 let _curUser = null;
 let _curPerm = null; // read | write | master
+
+// Firebase 응답 없을 때 로그인 화면으로 fallback
+const _authFallback = setTimeout(()=>{
+  if(document.getElementById('auth-loading').style.display!=='none'){
+    _showScreen('auth-login');
+  }
+}, 6000);
 
 function _showScreen(id){
   ['auth-loading','auth-login','auth-denied'].forEach(s=>{
@@ -3293,6 +3301,7 @@ function _initDashboard(){
 }
 
 _auth.onAuthStateChanged(async user=>{
+  clearTimeout(_authFallback);
   if(user){
     _showScreen('auth-loading');
     const info=await _checkPerm(user.email);
