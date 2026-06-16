@@ -22,7 +22,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .sidebar{width:220px;background:var(--surface);border-right:1.5px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100;overflow-y:auto}
 .main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:50;flex-shrink:0}
-.content{padding:24px;flex:1;overflow:hidden;box-sizing:border-box}
+.content{padding:24px;flex:1;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;min-height:0}
 
 .logo{padding:20px 20px 14px;border-bottom:1.5px solid var(--border)}
 .logo-name{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.4px}
@@ -49,6 +49,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .section-sub{font-size:12px;color:var(--text2);margin-left:6px}
 /* 테이블 공통 — 컬럼 너비는 내용 기준, 여백 균일 */
 .table-wrap{overflow-x:auto;max-height:calc(100vh - 300px);overflow-y:auto}
+table tbody tr:last-child td{padding-bottom:16px}
+table:has(tfoot) tbody::after,table tfoot::before{content:none}
+tfoot tr,.tfoot-row{box-shadow:0 -2px 4px -2px rgba(0,0,0,.06)}
+tfoot td,.tfoot-row td{background:#ffffff !important;border-top:2px solid var(--border) !important}
 .table-wrap.fluid{}
 .billing-wrap{display:flex;flex-direction:column;min-height:0;overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 220px)}
 table{border-collapse:collapse;font-size:13px;width:auto;min-width:100%}
@@ -86,7 +90,7 @@ select.inp{cursor:pointer}
 .btn-ghost{background:var(--surface);color:var(--text2);border:1.5px solid var(--border)}
 .btn-ghost:hover{background:var(--surface2);color:var(--text)}
 .btn-green{background:var(--accent2)}
-.panel{display:none}.panel.active{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.panel{display:none}.panel.active{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;background:var(--surface);margin-bottom:16px}
 .upload-zone:hover{border-color:var(--accent);background:rgba(26,110,245,.04)}
 .upload-zone input{display:none}
@@ -422,9 +426,9 @@ select.inp{cursor:pointer}
           </div>
         </div>
       </div>
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head"><span class="section-title">월별 수익 현황</span></div>
-        <div class="table-wrap"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
           <thead><tr>
             <th>정산년월</th><th class="num">가입보상금</th><th class="num">실수납</th>
             <th class="num">수입합계</th><th class="num">도매대가</th><th class="num">순이익</th><th class="num">마진율</th>
@@ -488,7 +492,7 @@ select.inp{cursor:pointer}
           </div>
         </div>
       </div>
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span><span class="section-title">장려금 내역</span><span class="section-sub" id="rewardCount"></span></span>
           <div class="filter-bar">
@@ -662,7 +666,7 @@ select.inp{cursor:pointer}
           </div>
         </div>
       </div>
-      <div class="section" style="flex:1;display:flex;flex-direction:column">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">망이용대가 상세</span>
           <span style="font-size:11px;color:var(--text2)">※ 모든 금액은 VAT 별도</span>
@@ -731,12 +735,12 @@ select.inp{cursor:pointer}
     <!-- ===== 요금제 그룹 ===== -->
     <div class="panel" id="panel-plangroup">
       <div class="kpi-grid" id="plangroupKpi"></div>
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">요금제 그룹</span>
           <span style="font-size:12px;color:var(--text2)" id="plangroupCount"></span>
         </div>
-        <div style="padding:10px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="padding:10px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
           <select class="inp" id="plangroupBrandFilter" onchange="renderPlanGroup()" style="font-size:12px;padding:5px 10px;min-width:140px">
             <option value="">전체 브랜드사</option>
           </select>
@@ -788,9 +792,9 @@ select.inp{cursor:pointer}
           <tfoot><tr class="tfoot-row" id="tfootBrand"></tr></tfoot>
         </table></div>
       </div>
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head"><span class="section-title">가입자 목록</span><span class="section-sub" id="brandSubCount"></span></div>
-        <div class="table-wrap" style="max-height:320px"><table>
+        <div class="table-wrap" style="flex:1;overflow-y:auto"><table>
           <thead><tr>
             <th>계약번호</th><th>고객명</th><th>요금제</th><th>개통일</th><th>해지일</th>
             <th class="num">장려금</th><th class="num">청구</th><th class="num">수납</th>
@@ -862,7 +866,7 @@ select.inp{cursor:pointer}
       </div>
 
       <!-- 업로드된 정산월 목록 -->
-      <div class="section">
+      <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">📋 업로드된 정산월 목록</span>
           <span style="font-size:12px;color:var(--text2)" id="uploadMonthCount"></span>
@@ -906,7 +910,7 @@ select.inp{cursor:pointer}
         </div>
 
         <!-- 정산월 테이블 -->
-        <div class="table-wrap" style="max-height:calc(100vh - 480px)">
+        <div class="table-wrap" style="flex:1;overflow-y:auto">
           <table id="uploadMonthTable">
             <thead><tr>
               <th style="width:40px"></th>
@@ -3192,7 +3196,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-16 11:56:05';
+const _BUILD_TIME = '2026-06-16 16:36:41';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
