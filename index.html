@@ -708,16 +708,10 @@ select.inp{cursor:pointer}
 
     <!-- ===== 장려금 정책 ===== -->
     <div class="panel" id="panel-policy">
-      <div class="kpi-grid" id="policyKpi"></div>
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">장려금 정책 현황</span>
-          <div style="display:flex;align-items:center;gap:8px">
-          <select class="inp" id="policyGroupFilter" onchange="renderPolicy()" style="font-size:12px;padding:5px 10px">
-            <option value="">전체 그룹</option>
-          </select>
           <div class="tbl-menu" id="menuPl"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuPl',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblPolicy','장려금정책')">📥 엑셀 다운로드</button></div></div>
-          </div>
         </div>
         <!-- 가입월 인라인 필터 -->
         <div style="border-top:1.5px solid var(--border)">
@@ -730,6 +724,9 @@ select.inp{cursor:pointer}
             <select class="inp" id="plRangeFrom" onchange="renderPolicy()" style="width:100px"></select>
             <span style="color:var(--text2);font-size:13px;flex-shrink:0">~</span>
             <select class="inp" id="plRangeTo" onchange="renderPolicy()" style="width:100px"></select>
+            <select class="inp" id="policyGroupFilter" onchange="renderPolicy()" style="font-size:12px;padding:5px 10px;margin-left:8px">
+              <option value="">전체 그룹</option>
+            </select>
           </div>
           <!-- 월 선택 행 -->
           <div class="filter-row inactive" id="plrow-pick" style="flex-direction:column;align-items:flex-start;gap:8px">
@@ -747,7 +744,7 @@ select.inp{cursor:pointer}
         </div>
         <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblPolicy">
           <thead><tr>
-            <th>그룹</th><th>가입월</th><th>정책명</th><th>적용기간</th>
+            <th style="width:50px">No.</th><th>그룹</th><th>가입월</th><th>정책명</th><th>적용기간</th>
             <th class="num">총 장려금</th><th>지급종류</th>
             <th>M+1 정산월</th><th>M+3 정산월</th><th>M+6 정산월</th><th>지급조건</th>
           </tr></thead>
@@ -2592,9 +2589,10 @@ function renderPolicy(){
     filtered=filtered.filter(p=>_plPicked.has(p.ym));
   }
 
-  document.getElementById('tbodyPolicy').innerHTML=filtered.map(p=>{
+  document.getElementById('tbodyPolicy').innerHTML=filtered.map((p,i)=>{
     const amt=parseInt(p.total||0);
     return`<tr>
+      <td style="color:var(--text2)">${i+1}</td>
       <td><span class="tag">${p.group}</span></td>
       <td style="color:var(--text2)">${p.ym?fmt(p.ym):''}</td>
       <td>${p.name}</td>
@@ -2607,11 +2605,6 @@ function renderPolicy(){
       <td style="font-size:12px;color:var(--text2)">${p.cond}</td>
     </tr>`;
   }).join('');
-  const brands=[...new Set(PLAN_GROUP.map(p=>p.brand))];
-  document.getElementById('policyKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">파트너 브랜드</div><div class="kpi-value c-green">${brands.length}개</div><div class="kpi-sub">${brands.join(' · ')}</div></div>
-    <div class="kpi"><div class="kpi-label">조회 정책 건수</div><div class="kpi-value c-orange">${filtered.length}건</div><div class="kpi-sub">전체 ${getPolicies().length}건</div></div>
-  `;
 }
 
 // ============================================================
@@ -3214,7 +3207,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 11:22:09';
+const _BUILD_TIME = '2026-06-17 11:46:29';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
