@@ -68,6 +68,7 @@ table{border-collapse:collapse;font-size:13px;width:auto;min-width:100%}
 thead th{background:var(--surface);padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);white-space:nowrap;position:sticky;top:0;z-index:2;box-shadow:0 1px 0 var(--border)}
 thead th.num{text-align:right}
 thead th{position:sticky;top:0;z-index:2;background:var(--surface)}
+.thead-sub th{top:34px;z-index:1}
 tfoot td,tfoot th{position:sticky;bottom:0;z-index:2;background:var(--surface)}
 .tfoot-row td,.tfoot-row th{position:sticky;bottom:0;z-index:2;background:var(--surface)}
 tbody tr{border-top:1px solid var(--border);transition:background .1s}
@@ -190,6 +191,7 @@ select.inp{cursor:pointer}
   .billing-wrap{display:flex;flex-direction:column;min-height:0;max-height:calc(100vh - 180px);overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{font-size:12px;min-width:max-content;width:auto}
   thead th{padding:7px 9px;font-size:10px;white-space:nowrap}
+  .thead-sub th{top:27px}
   tbody td{padding:6px 9px;font-size:12px;white-space:nowrap}
   .tfoot-row td{padding:6px 9px;font-size:12px}
   .sub-table{font-size:12px;min-width:max-content}
@@ -693,12 +695,19 @@ select.inp{cursor:pointer}
           </div>
         </div>
         <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblNetwork">
-          <thead><tr>
-            <th>정산년월</th><th>계약번호</th><th>요금제</th>
+          <thead>
+          <tr>
+            <th rowspan="2">정산년월</th><th rowspan="2">계약번호</th><th rowspan="2">요금제</th>
+            <th colspan="7" class="num" style="text-align:center">망 이용 대가</th>
+            <th rowspan="2" class="num">망이용대가 합계<br><span style="font-weight:400;font-size:10px">(A)</span></th>
+            <th rowspan="2" class="num">대행수수료<br><span style="font-weight:400;font-size:10px">(B)</span></th>
+            <th rowspan="2" class="num">도매대가합계<br><span style="font-weight:400;font-size:10px">(A+B) VAT별도</span></th>
+          </tr>
+          <tr class="thead-sub">
             <th class="num">가입자당단가</th><th class="num">음성종량</th><th class="num">영상종량</th>
             <th class="num">SMS종량</th><th class="num">데이터종량</th><th class="num">부가서비스</th><th class="num">로밍</th>
-            <th class="num">대행수수료</th><th class="num">도매대가합계<br><span style="font-weight:400;font-size:10px">VAT별도</span></th>
-          </tr></thead>
+          </tr>
+          </thead>
           <tbody id="tbodyNetwork"></tbody>
           <tfoot><tr class="tfoot-row" id="tfootNetwork"></tr></tfoot>
         </table></div>
@@ -1504,18 +1513,22 @@ function renderNetwork(){
     {label:'대행수수료',data:monthly.map(r=>r.fee),backgroundColor:'rgba(245,165,36,.7)',borderRadius:3},
   ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}}});
   renderNetworkFeeChart();
-  const n=v=>v?won(v):'—';
-  document.getElementById('tbodyNetwork').innerHTML=data.slice(0,300).map(r=>`
+  const n=v=>won(v||0);
+  document.getElementById('tbodyNetwork').innerHTML=data.slice(0,300).map(r=>{
+    const netSum=(r.net_unit||0)+(r.net_voice||0)+(r.net_video||0)+(r.net_sms||0)+(r.net_data||0)+(r.net_addon||0)+(r.net_roam||0);
+    return `
     <tr onclick="showSubscriber('${r.cn}')" style="cursor:pointer">
       <td>${fmt(r.y)}</td><td style="font-size:12px;color:var(--text2)">${r.cn}</td>
       <td>${planDisp(r.plan)}</td>
       <td class="num">${n(r.net_unit)}</td><td class="num">${n(r.net_voice)}</td><td class="num">${n(r.net_video)}</td>
       <td class="num">${n(r.net_sms)}</td><td class="num">${n(r.net_data)}</td><td class="num">${n(r.net_addon)}</td><td class="num">${n(r.net_roam)}</td>
+      <td class="num" style="font-weight:700">${n(netSum)}</td>
       <td class="num">${n(r.fee)}</td><td class="num c-red">${n(r.total)}</td>
-    </tr>`).join('');
+    </tr>`;}).join('');
   document.getElementById('tfootNetwork').innerHTML=`<td colspan="3">합계 ${data.length}건</td>
     <td class="num">${won(tot.unit)}</td><td class="num">${won(tot.voice)}</td><td class="num">${won(tot.video)}</td>
     <td class="num">${won(tot.sms)}</td><td class="num">${won(tot.data)}</td><td class="num">${won(tot.addon)}</td><td class="num">${won(tot.roam)}</td>
+    <td class="num">${won(totNet)}</td>
     <td class="num">${won(tot.fee)}</td><td class="num c-red">${won(tot.total)}</td>`;
 }
 
@@ -3217,7 +3230,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 14:20:42';
+const _BUILD_TIME = '2026-06-17 14:50:54';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
