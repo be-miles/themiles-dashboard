@@ -3144,13 +3144,13 @@ function renderSettlement(){
   html+=`<tr>
     ${sectionTd('수입',5,'rgba(243,18,96,.12)')}
     ${tdL('가입일시 보상금')}
-    ${YMS.map(ym=>td(`<span style="color:var(--accent3)">${n(calcs[ym]?.bo||0)}</span>`,';background:rgba(243,18,96,.12)')).join('')}
+    ${YMS.map(ym=>td(`<span style="color:var(--accent3)">${n(calcs[ym]?.bo||0)}</span>`)).join('')}
     ${tdSum(`<span style="color:var(--accent3)">${n(sumV('bo'))}</span>`)}
   </tr>
-  <tr>${tdL('실수납금 공급가')}${YMS.map(ym=>td(n(calcs[ym]?.p||0),';background:rgba(243,18,96,.12)')).join('')}${tdSum(n(sumV('p')))}</tr>
-  <tr>${tdL('실수납금 부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text2);font-size:12px">${n(calcs[ym]?.p_v||0)}</span>`,';background:rgba(243,18,96,.12)')).join('')}${tdSum(n(sumV('p_v')),';color:var(--text2)')}</tr>
-  <tr>${tdL('<b>수입 공급가액 합계</b>')}${YMS.map(ym=>td(`<b>${n(calcs[ym]?.income_s||0)}</b>`,';background:rgba(243,18,96,.2)')).join('')}${tdSum(`<b>${n(sumV('income_s'))}</b>`)}</tr>
-  <tr>${tdL('<b>수입 부가세 합계</b>','opacity:.8')}${YMS.map(ym=>td(`<b style="color:var(--text2)">${n(calcs[ym]?.income_v||0)}</b>`,';background:rgba(243,18,96,.2)')).join('')}${tdSum(`<b style="color:var(--text2)">${n(sumV('income_v'))}</b>`)}</tr>`;
+  <tr>${tdL('실수납금 공급가')}${YMS.map(ym=>td(n(calcs[ym]?.p||0))).join('')}${tdSum(n(sumV('p')))}</tr>
+  <tr>${tdL('실수납금 부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text2);font-size:12px">${n(calcs[ym]?.p_v||0)}</span>`)).join('')}${tdSum(n(sumV('p_v')),';color:var(--text2)')}</tr>
+  <tr>${tdL('<b>수입 공급가액 합계</b>')}${YMS.map(ym=>td(`<b>${n(calcs[ym]?.income_s||0)}</b>`,';background:rgba(243,18,96,.2) !important')).join('')}${tdSum(`<b>${n(sumV('income_s'))}</b>`)}</tr>
+  <tr>${tdL('<b>수입 부가세 합계</b>','opacity:.8')}${YMS.map(ym=>td(`<b style="color:var(--text2)">${n(calcs[ym]?.income_v||0)}</b>`,';background:rgba(243,18,96,.2) !important')).join('')}${tdSum(`<b style="color:var(--text2)">${n(sumV('income_v'))}</b>`)}</tr>`;
 
   // 비용 (8행)
   html+=`<tr>
@@ -3164,8 +3164,8 @@ function renderSettlement(){
   <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text2);font-size:12px">${n(calcs[ym]?.fee_v||0)}</span>`)).join('')}${tdSum(n(sumV('fee_v')),';color:var(--text2)')}</tr>
   <tr>${tdL('스테이지온 이용료')}${YMS.map(ym=>td(`<span style="color:var(--text3)">0</span>`)).join('')}${tdSum('0',';color:var(--text3)')}</tr>
   <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text3)">0</span>`)).join('')}${tdSum('0',';color:var(--text3)')}</tr>
-  <tr>${tdL('<b>비용 공급가액 합계</b>')}${YMS.map(ym=>td(`<b>${n(calcs[ym]?.cost_s||0)}</b>`,';background:rgba(26,110,245,.16)')).join('')}${tdSum(`<b>${n(sumV('cost_s'))}</b>`)}</tr>
-  <tr>${tdL('<b>비용 부가세 합계</b>','opacity:.8')}${YMS.map(ym=>td(`<b style="color:var(--text2)">${n(calcs[ym]?.cost_v||0)}</b>`,';background:rgba(26,110,245,.16)')).join('')}${tdSum(`<b style="color:var(--text2)">${n(sumV('cost_v'))}</b>`)}</tr>`;
+  <tr>${tdL('<b>비용 공급가액 합계</b>')}${YMS.map(ym=>td(`<b>${n(calcs[ym]?.cost_s||0)}</b>`,';background:var(--surface2) !important')).join('')}${tdSum(`<b>${n(sumV('cost_s'))}</b>`)}</tr>
+  <tr>${tdL('<b>비용 부가세 합계</b>','opacity:.8')}${YMS.map(ym=>td(`<b style="color:var(--text2)">${n(calcs[ym]?.cost_v||0)}</b>`,';background:var(--surface2) !important')).join('')}${tdSum(`<b style="color:var(--text2)">${n(sumV('cost_v'))}</b>`)}</tr>`;
 
   // 구분선
   html+=`<tr><td colspan="${3+YMS.length}" style="height:8px;background:var(--surface);border:1px solid var(--border)"></td></tr>`;
@@ -3178,7 +3178,7 @@ function renderSettlement(){
     ${tdSum(`<span style="color:var(--accent)">${n(sumV('tax_s'))}</span>`)}
   </tr>
   <tr>${tdL('부가세')}${YMS.map(ym=>td(chk(ym,'tax_v',calcs[ym]?.tax_v||0))).join('')}${tdSum(n(sumV('tax_v')))}</tr>
-  <tr>${tdL('<b>합계</b>')}${YMS.map(ym=>td(`<b>${chk(ym,'tax_t',calcs[ym]?.tax_t||0)}</b>`,';background:var(--surface);font-weight:700')).join('')}${tdSum(`<b>${n(sumV('tax_t'))}</b>`,';background:var(--surface2)')}</tr>`;
+  <tr>${tdL('<b>합계</b>')}${YMS.map(ym=>td(`<b>${chk(ym,'tax_t',calcs[ym]?.tax_t||0)}</b>`,';background:rgba(26,110,245,.2);font-weight:700')).join('')}${tdSum(`<b>${n(sumV('tax_t'))}</b>`,';background:rgba(26,110,245,.25)')}</tr>`;
 
   html+=`</tbody>`;
 
@@ -3233,7 +3233,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 17:02:26';
+const _BUILD_TIME = '2026-06-17 18:42:34';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
