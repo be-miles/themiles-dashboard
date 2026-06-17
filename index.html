@@ -593,7 +593,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 청구/수납 ===== -->
     <div class="panel" id="panel-billing">
-      <div class="kpi-grid" id="billingKpi"></div>
       <div class="section" style="margin-bottom:12px;border-radius:var(--radius)">
         <!-- 기간 선택 행 -->
         <div class="filter-row" id="blrow-range">
@@ -635,7 +634,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 망이용대가 ===== -->
     <div class="panel" id="panel-network">
-      <div class="kpi-grid" id="networkKpi"></div>
       <div class="section" style="margin-bottom:12px;border-radius:var(--radius)">
         <!-- 기간 선택 행 -->
         <div class="filter-row" id="nwrow-range">
@@ -839,7 +837,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 정산표 ===== -->
     <div class="panel" id="panel-settlement">
-      <div class="kpi-grid" id="settlementKpi"></div>
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
           <span class="section-title">🧾 정산표 — VPI0007 · 더마일스</span>
@@ -1229,9 +1226,6 @@ function renderProfit(){
   data.forEach(r=>{totRevenue+=r.bo+r.p;totCost+=r.dw});
   const totProfit=totRevenue-totCost;
   document.getElementById('profitKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">수입 합계</div><div class="kpi-value c-blue">${won(totRevenue)}</div><div class="kpi-sub">보상금 + 실수납</div></div>
-    <div class="kpi"><div class="kpi-label">비용 합계</div><div class="kpi-value c-red">${won(totCost)}</div><div class="kpi-sub">도매대가</div></div>
-    <div class="kpi"><div class="kpi-label">순이익</div><div class="kpi-value ${totProfit>=0?'c-green':'c-red'}">${won(totProfit)}</div><div class="kpi-sub">${totRevenue>0?(totProfit/totRevenue*100).toFixed(1)+'%':'-'}</div></div>
     <div class="kpi"><div class="kpi-label">최신월 보상금</div><div class="kpi-value c-orange">${won(data[data.length-1]?.bo)}</div><div class="kpi-sub">${fmt(data[data.length-1]?.y)}</div></div>
   `;
   const labels=data.map(r=>fmt(r.y));
@@ -1325,9 +1319,6 @@ function renderReward(){
   const rewards=getRewards();
   document.getElementById('rewardKpi').innerHTML=`
     <div class="kpi"><div class="kpi-label">전체 장려금 건수</div><div class="kpi-value c-blue">${rewards.length}건</div></div>
-    <div class="kpi"><div class="kpi-label">필터 건수</div><div class="kpi-value">${data.length}건</div></div>
-    <div class="kpi"><div class="kpi-label">필터 합계</div><div class="kpi-value c-green">${won(totAmt)}</div></div>
-    <div class="kpi"><div class="kpi-label">건당 평균</div><div class="kpi-value c-orange">${data.length?won(totAmt/data.length):'-'}</div></div>
   `;
   // month chart
   const monthMap={};
@@ -1436,13 +1427,6 @@ function renderBilling(){
   payments.forEach(r=>{tot.p+=r.p||0;});
   const totUnpaid=tot.nb-tot.p;
 
-  document.getElementById('billingKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">조회 건수</div><div class="kpi-value c-blue">${billing.length+payOnly.length}건</div><div class="kpi-sub">청구 ${billing.length}건 · 수납전용 ${payOnly.length}건</div></div>
-    <div class="kpi"><div class="kpi-label">실청구금 합계</div><div class="kpi-value">${won(tot.nb)}</div></div>
-    <div class="kpi"><div class="kpi-label">실수납 합계</div><div class="kpi-value c-green">${won(tot.p)}</div></div>
-    <div class="kpi"><div class="kpi-label">미수납 합계</div><div class="kpi-value ${totUnpaid>0?'c-red':'c-green'}">${won(totUnpaid)}</div></div>
-  `;
-
   const wrap=document.getElementById('billingTableWrap');
   wrap.innerHTML=`<table id="tblBilling">
     <thead><tr>
@@ -1539,12 +1523,6 @@ function renderNetwork(){
   data.forEach(r=>{tot.unit+=r.net_unit||0;tot.voice+=r.net_voice||0;tot.video+=r.net_video||0;tot.sms+=r.net_sms||0;tot.data+=r.net_data||0;tot.addon+=r.net_addon||0;tot.roam+=r.net_roam||0;tot.fee+=r.fee||0;tot.total+=r.total||0;});
   const totNet=tot.unit+tot.voice+tot.video+tot.sms+tot.data+tot.addon+tot.roam;
   document.getElementById('networkCount').textContent=`${data.length}건`;
-  document.getElementById('networkKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">조회 건수</div><div class="kpi-value">${data.length}건</div></div>
-    <div class="kpi"><div class="kpi-label">망이용대가 합계</div><div class="kpi-value c-blue">${won(totNet)}</div></div>
-    <div class="kpi"><div class="kpi-label">대행수수료 합계</div><div class="kpi-value c-orange">${won(tot.fee)}</div></div>
-    <div class="kpi"><div class="kpi-label">도매대가 합계 (VAT별도)</div><div class="kpi-value c-red">${won(tot.total)}</div></div>
-  `;
   const monthly=getMonthly();
   const labels=monthly.map(r=>fmt(r.y));
   mkChart('chartNetworkMonth',{type:'bar',data:{labels,datasets:[
@@ -2191,10 +2169,7 @@ function renderSubscriberTable(){
     ymRange=picked.length===1?fmt(picked[0]):picked.map(fmt).join(', ');
   }
   document.getElementById('subKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">조회 가입자 수</div><div class="kpi-value c-blue">${totSubs}명</div><div class="kpi-sub">${ymRange}</div></div>
-    <div class="kpi"><div class="kpi-label">장려금 합계</div><div class="kpi-value c-orange">${won(totReward)}</div></div>
-    <div class="kpi"><div class="kpi-label">청구 합계</div><div class="kpi-value">${won(totBilling)}</div></div>
-    <div class="kpi"><div class="kpi-label">데이터 불일치 의심</div><div class="kpi-value ${missingData?'c-red':'c-green'}">${missingData}건</div><div class="kpi-sub">망이용 있음·청구 없음</div></div>
+    <div class="kpi"><div class="kpi-label">데이터 불일치 의심</div><div class="kpi-value ${missingData?'c-red':'c-green'}">${missingData}건</div><div class="kpi-sub">망이용 있음·청구 없음 · 조회기간 ${ymRange}</div></div>
   `;
   document.getElementById('subCount').textContent=` ${totSubs}명`;
 
@@ -2766,9 +2741,6 @@ function _renderBrandContent(brand){
 
   document.getElementById('brandKpi').innerHTML=`
     <div class="kpi"><div class="kpi-label">브랜드</div><div class="kpi-value c-blue">${brand}</div><div class="kpi-sub">요금제 ${brandPlans.length}종</div></div>
-    <div class="kpi"><div class="kpi-label">가입자 수 (전체 시트)</div><div class="kpi-value">${bCns.size}명</div><div class="kpi-sub">장려금 ${[...new Set(bRewards.map(r=>r.cn))].length}명 포함</div></div>
-    <div class="kpi"><div class="kpi-label">장려금 합계</div><div class="kpi-value c-orange">${won(totReward)}</div></div>
-    <div class="kpi"><div class="kpi-label">청구 합계</div><div class="kpi-value">${won(totBilling)}</div></div>
   `;
   document.getElementById('brandSubCount').textContent=' '+bCns.size+'명';
 
@@ -2985,7 +2957,6 @@ function renderSettlement(){
   const periodKpiLabel=_settlementMode==='range'?'정산 기간':'선택 정산월';
 
   if(!YMS.length){
-    document.getElementById('settlementKpi').innerHTML='';
     document.getElementById('settlementMatchBadge').innerHTML='';
     if(_settlementMode==='pick'){
       // 좌측 항목 컬럼만 표시 — 모든 행에 빈 셀 포함
@@ -3073,15 +3044,7 @@ function renderSettlement(){
     });
   });
 
-  // KPI — 선택된 월 기준으로만 집계
-  const totBo=YMS.reduce((s,ym)=>s+(calcs[ym]?.bo||0),0);
-  const totTax=YMS.reduce((s,ym)=>s+(calcs[ym]?.tax_t||0),0);
-  document.getElementById('settlementKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">${periodKpiLabel}</div><div class="kpi-value" style="font-size:${_settlementMode==='range'?'15px':'12px'};line-height:1.4">${periodLabel}</div></div>
-    <div class="kpi"><div class="kpi-label">보상금 합계</div><div class="kpi-value c-orange">${won(totBo)}</div></div>
-    <div class="kpi"><div class="kpi-label">세금계산서 합계</div><div class="kpi-value c-blue">${won(totTax)}</div></div>
-    <div class="kpi"><div class="kpi-label">Excel 대조</div><div class="kpi-value ${totalDiff===0?'c-green':'c-red'}">${totalDiff===0?'전항목 일치':'차이 '+totalDiff+'건'}</div></div>
-  `;
+  // KPI — 선택된 월 기준으로만 집계 (총계는 정산표 자체 합계 열에 표시되므로 별도 카드 불필요)
   document.getElementById('settlementMatchBadge').innerHTML=
     `<span class="badge" style="background:${totalDiff===0?'var(--accent2)':'var(--accent4)'}">${totalDiff===0?'✅ Excel 완전 일치':'⚠ 차이 '+totalDiff+'건'}</span>`;
 
@@ -3114,23 +3077,26 @@ function renderSettlement(){
   };
   const thC=(label,style='')=>`<th style="${thS};${style}">${label}</th>`;
 
-  const thSumStyle=`${thS};background:#0d5bdb;color:#fff`;
   const tdSum=(v,opt='')=>`<td style="padding:7px 14px;border:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;background:rgba(26,110,245,.06);font-weight:700${opt}">${v}</td>`;
   const sumV=(key)=>YMS.reduce((s,ym)=>s+(calcs[ym]?.[key]||0),0);
 
+  const theadLabel='padding:8px 12px;border:1px solid var(--border);font-weight:700;background:var(--surface);text-align:center;white-space:nowrap';
+  const theadData='padding:7px 14px;border:1px solid var(--border);text-align:center;white-space:nowrap';
+  const theadSum='padding:8px 12px;border:1px solid var(--border);font-weight:700;background:var(--surface);text-align:center;vertical-align:middle;white-space:nowrap';
+
   let html=`<thead style="position:sticky;top:0;z-index:5;background:#fff">
   <tr>
-    <td colspan="2" style="padding:4px 12px;border:1px solid var(--border);font-size:10px;color:var(--text2)">이용월</td>
-    ${YMS.map(ym=>`<td style="padding:4px 14px;border:1px solid var(--border);font-size:11px;color:var(--text2);text-align:center;background:#fafbfc">${fmt(SETTLE_META[ym]?.base)}</td>`).join('')}
-    <td rowspan="3" style="${thSumStyle};vertical-align:middle">합계</td>
+    <td colspan="2" style="${theadLabel}">이용월</td>
+    ${YMS.map(ym=>`<td style="${theadData}">${fmt(SETTLE_META[ym]?.base)}</td>`).join('')}
+    <td rowspan="3" style="${theadSum}">합계</td>
   </tr>
   <tr>
-    <th colspan="2" style="${thL};position:static">청구/수납월</th>
-    ${YMS.map(ym=>`<th style="${thS};${bg.header};position:static">${fmt(ym)}</th>`).join('')}
+    <td colspan="2" style="${theadLabel}">청구/수납월</td>
+    ${YMS.map(ym=>`<td style="${theadData};font-weight:700">${fmt(ym)}</td>`).join('')}
   </tr>
   <tr>
-    <td colspan="2" style="padding:4px 12px;border:1px solid var(--border);font-size:10px;color:var(--text2)">정산월</td>
-    ${YMS.map(ym=>`<td style="padding:4px 14px;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--accent);text-align:center">${fmt(SETTLE_META[ym]?.pay)}</td>`).join('')}
+    <td colspan="2" style="${theadLabel}">정산월</td>
+    ${YMS.map(ym=>`<td style="${theadData}">${fmt(SETTLE_META[ym]?.pay)}</td>`).join('')}
   </tr>
   </thead><tbody>`;
 
@@ -3279,7 +3245,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 10:39:34';
+const _BUILD_TIME = '2026-06-17 11:03:55';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
