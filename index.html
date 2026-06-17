@@ -3041,9 +3041,9 @@ function renderSettlement(){
   const n=v=>v===0?'0':(v||'').toLocaleString();
   const chk=(ym,k,v)=>{
     const e=EXCEL_SETTLEMENT[ym];
-    if(!e||e[k]===undefined)return v===0?'<span style="color:var(--text3)">0</span>':`<span>${n(v)}</span>`;
+    if(!e||e[k]===undefined)return n(v);
     const ok=v===e[k];
-    return ok?`<span>${n(v)}</span>`:`<span style="color:var(--accent4);font-weight:600" title="Excel: ${n(e[k])}">${n(v)}*</span>`;
+    return ok?n(v):`<span title="Excel: ${n(e[k])}">${n(v)}*</span>`;
   };
 
   // 헤더 스타일
@@ -3065,7 +3065,7 @@ function renderSettlement(){
   };
   const thC=(label,style='')=>`<th style="${thS};${style}">${label}</th>`;
 
-  const tdSum=(v,opt='')=>`<td style="padding:7px 14px;border:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;background:var(--surface);font-weight:700${opt}">${v}</td>`;
+  const tdSum=(v,opt='')=>`<td style="padding:7px 14px;border:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;background:var(--surface)${opt}">${v}</td>`;
   const sumV=(key)=>YMS.reduce((s,ym)=>s+(calcs[ym]?.[key]||0),0);
 
   const theadLabel='padding:8px 12px;border:1px solid var(--border);font-weight:700;background:var(--surface);text-align:center;white-space:nowrap';
@@ -3092,8 +3092,8 @@ function renderSettlement(){
   html+=`<tr>
     ${sectionTd('보상금',1)}
     ${tdL('가입일시 보상금')}
-    ${YMS.map(ym=>td(chk(ym,'bo',calcs[ym]?.bo||0),' color:var(--accent3);font-weight:600')).join('')}
-    ${tdSum(`<span style="color:var(--accent3)">${n(sumV('bo'))}</span>`)}
+    ${YMS.map(ym=>td(chk(ym,'bo',calcs[ym]?.bo||0))).join('')}
+    ${tdSum(n(sumV('bo')))}
   </tr>`;
 
   // 청구 (7행)
@@ -3105,19 +3105,19 @@ function renderSettlement(){
   </tr>
   <tr>${tdL('총청구금')}${YMS.map(ym=>td(chk(ym,'b',calcs[ym]?.b||0))).join('')}${tdSum(n(sumV('b')))}</tr>
   <tr>${tdL('할인금')}${YMS.map(ym=>td(chk(ym,'d',calcs[ym]?.d||0))).join('')}${tdSum(n(sumV('d')))}</tr>
-  <tr>${tdL('실청구금')}${YMS.map(ym=>td(chk(ym,'nb',calcs[ym]?.nb||0),' color:var(--accent)')).join('')}${tdSum(`<span style="color:var(--accent)">${n(sumV('nb'))}</span>`)}</tr>
-  <tr>${tdL('총청구금-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'b_v',calcs[ym]?.b_v||0),' color:var(--text2);font-size:12px')).join('')}${tdSum(n(sumV('b_v')),';color:var(--text2)')}</tr>
-  <tr>${tdL('할인금-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'d_v',calcs[ym]?.d_v||0),' color:var(--text2);font-size:12px')).join('')}${tdSum(n(sumV('d_v')),';color:var(--text2)')}</tr>
-  <tr>${tdL('실청구금-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'nb_v',calcs[ym]?.nb_v||0),' color:var(--text2);font-size:12px')).join('')}${tdSum(n(sumV('nb_v')),';color:var(--text2)')}</tr>`;
+  <tr>${tdL('실청구금')}${YMS.map(ym=>td(chk(ym,'nb',calcs[ym]?.nb||0))).join('')}${tdSum(n(sumV('nb')))}</tr>
+  <tr>${tdL('총청구금-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'b_v',calcs[ym]?.b_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('b_v')))}</tr>
+  <tr>${tdL('할인금-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'d_v',calcs[ym]?.d_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('d_v')))}</tr>
+  <tr>${tdL('실청구금-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'nb_v',calcs[ym]?.nb_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('nb_v')))}</tr>`;
 
   // 수납 (2행)
   html+=`<tr>
     ${sectionTd('수납',2)}
     ${tdL('실수납')}
-    ${YMS.map(ym=>td(chk(ym,'p',calcs[ym]?.p||0),' color:var(--accent2)')).join('')}
-    ${tdSum(`<span style="color:var(--accent2)">${n(sumV('p'))}</span>`)}
+    ${YMS.map(ym=>td(chk(ym,'p',calcs[ym]?.p||0))).join('')}
+    ${tdSum(n(sumV('p')))}
   </tr>
-  <tr>${tdL('실수납-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'p_v',calcs[ym]?.p_v||0),' color:var(--text2);font-size:12px')).join('')}${tdSum(n(sumV('p_v')),';color:var(--text2)')}</tr>`;
+  <tr>${tdL('실수납-부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'p_v',calcs[ym]?.p_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('p_v')))}</tr>`;
 
   // 망이용대가 (2행)
   html+=`<tr>
@@ -3126,7 +3126,7 @@ function renderSettlement(){
     ${YMS.map(ym=>td(chk(ym,'nd',calcs[ym]?.nd||0))).join('')}
     ${tdSum(n(sumV('nd')))}
   </tr>
-  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'nd_v',calcs[ym]?.nd_v||0),' color:var(--text2);font-size:12px')).join('')}${tdSum(n(sumV('nd_v')),';color:var(--text2)')}</tr>`;
+  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'nd_v',calcs[ym]?.nd_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('nd_v')))}</tr>`;
 
   // 대행수수료 (2행)
   html+=`<tr>
@@ -3135,7 +3135,7 @@ function renderSettlement(){
     ${YMS.map(ym=>td(chk(ym,'fee',calcs[ym]?.fee||0))).join('')}
     ${tdSum(n(sumV('fee')))}
   </tr>
-  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'fee_v',calcs[ym]?.fee_v||0),' color:var(--text2);font-size:12px')).join('')}${tdSum(n(sumV('fee_v')),';color:var(--text2)')}</tr>`;
+  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(chk(ym,'fee_v',calcs[ym]?.fee_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('fee_v')))}</tr>`;
 
   // 구분선
   html+=`<tr><td colspan="${3+YMS.length}" style="height:8px;background:var(--surface);border:1px solid var(--border)"></td></tr>`;
@@ -3144,13 +3144,13 @@ function renderSettlement(){
   html+=`<tr>
     ${sectionTd('수입',5,'rgba(243,18,96,.12)')}
     ${tdL('가입일시 보상금')}
-    ${YMS.map(ym=>td(`<span style="color:var(--accent3)">${n(calcs[ym]?.bo||0)}</span>`)).join('')}
-    ${tdSum(`<span style="color:var(--accent3)">${n(sumV('bo'))}</span>`)}
+    ${YMS.map(ym=>td(n(calcs[ym]?.bo||0))).join('')}
+    ${tdSum(n(sumV('bo')))}
   </tr>
   <tr>${tdL('실수납금 공급가')}${YMS.map(ym=>td(n(calcs[ym]?.p||0))).join('')}${tdSum(n(sumV('p')))}</tr>
-  <tr>${tdL('실수납금 부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text2);font-size:12px">${n(calcs[ym]?.p_v||0)}</span>`)).join('')}${tdSum(n(sumV('p_v')),';color:var(--text2)')}</tr>
+  <tr>${tdL('실수납금 부가세','opacity:.7')}${YMS.map(ym=>td(n(calcs[ym]?.p_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('p_v')))}</tr>
   <tr>${tdL('수입 공급가액 합계')}${YMS.map(ym=>td(n(calcs[ym]?.income_s||0))).join('')}${tdSum(n(sumV('income_s')))}</tr>
-  <tr>${tdL('수입 부가세 합계','opacity:.8')}${YMS.map(ym=>td(`<span style="color:var(--text2)">${n(calcs[ym]?.income_v||0)}</span>`)).join('')}${tdSum(`<span style="color:var(--text2)">${n(sumV('income_v'))}</span>`)}</tr>`;
+  <tr>${tdL('수입 부가세 합계','opacity:.8')}${YMS.map(ym=>td(n(calcs[ym]?.income_v||0))).join('')}${tdSum(n(sumV('income_v')))}</tr>`;
 
   // 비용 (8행)
   html+=`<tr>
@@ -3159,13 +3159,13 @@ function renderSettlement(){
     ${YMS.map(ym=>td(n(calcs[ym]?.nd||0))).join('')}
     ${tdSum(n(sumV('nd')))}
   </tr>
-  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text2);font-size:12px">${n(calcs[ym]?.nd_v||0)}</span>`)).join('')}${tdSum(n(sumV('nd_v')),';color:var(--text2)')}</tr>
+  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(n(calcs[ym]?.nd_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('nd_v')))}</tr>
   <tr>${tdL('대행수수료')}${YMS.map(ym=>td(n(calcs[ym]?.fee||0))).join('')}${tdSum(n(sumV('fee')))}</tr>
-  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text2);font-size:12px">${n(calcs[ym]?.fee_v||0)}</span>`)).join('')}${tdSum(n(sumV('fee_v')),';color:var(--text2)')}</tr>
-  <tr>${tdL('스테이지온 이용료')}${YMS.map(ym=>td(`<span style="color:var(--text3)">0</span>`)).join('')}${tdSum('0',';color:var(--text3)')}</tr>
-  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(`<span style="color:var(--text3)">0</span>`)).join('')}${tdSum('0',';color:var(--text3)')}</tr>
+  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td(n(calcs[ym]?.fee_v||0),' font-size:12px')).join('')}${tdSum(n(sumV('fee_v')))}</tr>
+  <tr>${tdL('스테이지온 이용료')}${YMS.map(ym=>td('0')).join('')}${tdSum('0')}</tr>
+  <tr>${tdL('부가세','opacity:.7')}${YMS.map(ym=>td('0',' font-size:12px')).join('')}${tdSum('0')}</tr>
   <tr>${tdL('비용 공급가액 합계')}${YMS.map(ym=>td(n(calcs[ym]?.cost_s||0))).join('')}${tdSum(n(sumV('cost_s')))}</tr>
-  <tr>${tdL('비용 부가세 합계','opacity:.8')}${YMS.map(ym=>td(`<span style="color:var(--text2)">${n(calcs[ym]?.cost_v||0)}</span>`)).join('')}${tdSum(`<span style="color:var(--text2)">${n(sumV('cost_v'))}</span>`)}</tr>`;
+  <tr>${tdL('비용 부가세 합계','opacity:.8')}${YMS.map(ym=>td(n(calcs[ym]?.cost_v||0))).join('')}${tdSum(n(sumV('cost_v')))}</tr>`;
 
   // 구분선
   html+=`<tr><td colspan="${3+YMS.length}" style="height:8px;background:var(--surface);border:1px solid var(--border)"></td></tr>`;
@@ -3174,8 +3174,8 @@ function renderSettlement(){
   html+=`<tr>
     ${sectionTd('세금계산서\n발급',3)}
     ${tdL('공급가액')}
-    ${YMS.map(ym=>td(chk(ym,'tax_s',calcs[ym]?.tax_s||0),' font-weight:600;color:var(--accent)')).join('')}
-    ${tdSum(`<span style="color:var(--accent)">${n(sumV('tax_s'))}</span>`)}
+    ${YMS.map(ym=>td(chk(ym,'tax_s',calcs[ym]?.tax_s||0))).join('')}
+    ${tdSum(n(sumV('tax_s')))}
   </tr>
   <tr>${tdL('부가세')}${YMS.map(ym=>td(chk(ym,'tax_v',calcs[ym]?.tax_v||0))).join('')}${tdSum(n(sumV('tax_v')))}</tr>
   <tr>${tdL('합계')}${YMS.map(ym=>td(chk(ym,'tax_t',calcs[ym]?.tax_t||0))).join('')}${tdSum(n(sumV('tax_t')))}</tr>`;
@@ -3233,7 +3233,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 19:35:31';
+const _BUILD_TIME = '2026-06-17 19:56:11';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
