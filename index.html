@@ -448,7 +448,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 장려금 ===== -->
     <div class="panel" id="panel-reward">
-      <div class="kpi-grid" id="rewardKpi"></div>
       <!-- 기간/월 선택 필터 -->
       <div class="section" style="margin-bottom:0">
         <div class="filter-row" id="rwrow-range">
@@ -759,7 +758,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 요금제 그룹 ===== -->
     <div class="panel" id="panel-plangroup">
-      <div class="kpi-grid" id="plangroupKpi"></div>
       <div class="section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="section-head">
           <span class="section-title">요금제 그룹</span>
@@ -778,7 +776,7 @@ select.inp{cursor:pointer}
         </div>
         <div class="table-wrap" style="flex:1;overflow-y:auto"><table id="tblPlanGroup">
           <thead><tr>
-            <th>브랜드사</th><th>그룹</th><th>요금제명</th><th>데이터용량</th>
+            <th style="width:50px">No.</th><th>브랜드사</th><th>그룹</th><th>요금제명</th><th>데이터용량</th>
           </tr></thead>
           <tbody id="tbodyPlanGroup"></tbody>
         </table></div>
@@ -1299,10 +1297,6 @@ function renderReward(){
   const data=filterRewards();
   const totAmt=data.reduce((s,r)=>s+(r.amt||0),0);
   document.getElementById('rewardCount').textContent=` ${data.length}건`;
-  const rewards=getRewards();
-  document.getElementById('rewardKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">전체 장려금 건수</div><div class="kpi-value c-blue">${rewards.length}건</div></div>
-  `;
   // month chart
   const monthMap={};
   getRewards().forEach(r=>{if(r.amt>0)monthMap[r.y]=(monthMap[r.y]||0)+(r.amt||0)});
@@ -2555,19 +2549,14 @@ function renderPlanGroup(){
 
   const label=[brandFilter,groupFilter].filter(Boolean).join(' · ');
   document.getElementById('plangroupCount').textContent=`${filtered.length}개 요금제${label?' ('+label+')':''}`;
-  document.getElementById('tbodyPlanGroup').innerHTML=filtered.map(p=>`
+  document.getElementById('tbodyPlanGroup').innerHTML=filtered.map((p,i)=>`
     <tr>
+      <td style="color:var(--text2)">${i+1}</td>
       <td><span class="tag ${bc[p.brand]||'tag'}">${p.brand}</span></td>
       <td><span class="tag">${p.group}</span></td>
       <td>${planDisp(p.plan)}</td>
       <td style="color:var(--text2)">${p.data}</td>
     </tr>`).join('');
-  document.getElementById('plangroupKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">전체 요금제</div><div class="kpi-value c-blue">${PLAN_GROUP.length}개</div></div>
-    <div class="kpi"><div class="kpi-label">파트너 브랜드</div><div class="kpi-value c-green">${brands.length}개</div><div class="kpi-sub">${brands.sort().join(' · ')}</div></div>
-    <div class="kpi"><div class="kpi-label">그룹 수</div><div class="kpi-value c-orange">${groups.length}개</div></div>
-    <div class="kpi"><div class="kpi-label">조회 결과</div><div class="kpi-value">${filtered.length}개</div></div>
-  `;
 }
 
 function renderPolicy(){
@@ -2722,9 +2711,6 @@ function _renderBrandContent(brand){
   const totBilling=bBilling.reduce((s,r)=>s+(r.nb||0),0);
   const totPayment=bPayments.reduce((s,r)=>s+(r.p||0),0);
 
-  document.getElementById('brandKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">브랜드</div><div class="kpi-value c-blue">${brand}</div><div class="kpi-sub">요금제 ${brandPlans.length}종</div></div>
-  `;
   document.getElementById('brandSubCount').textContent=' '+bCns.size+'명';
 
   // 월별 장려금 차트
@@ -2764,7 +2750,7 @@ function _renderBrandContent(brand){
       <td class="num" style="color:var(--text2)">${won(s.fee)}</td>
     </tr>`;
   }).join('');
-  document.getElementById('tfootBrand').innerHTML=`<td colspan="3">합계</td>
+  document.getElementById('tfootBrand').innerHTML=`<td colspan="3">합계 (${brandPlans.length}종)</td>
     <td class="num">${tot2.subs.size}명</td><td class="num c-orange">${won(tot2.reward)}</td>
     <td class="num">${won(tot2.billing)}</td><td class="num c-green">${won(tot2.payment)}</td>
     <td class="num">${won(tot2.fee)}</td>`;
@@ -3228,7 +3214,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 11:17:53';
+const _BUILD_TIME = '2026-06-17 11:22:09';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
