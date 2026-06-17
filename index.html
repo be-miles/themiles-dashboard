@@ -83,7 +83,7 @@ tbody td{padding:9px 14px;white-space:nowrap;font-size:13px}
 .chart-wrap+.section .table-wrap{transition:max-height .3s ease}
 .chart-wrap-head{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;user-select:none;background:var(--surface);border-bottom:1.5px solid var(--border);transition:background .12s}
 .chart-wrap-head:hover{background:var(--surface2)}
-.chart-wrap-label{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.chart-wrap-label{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
 .chart-wrap-label .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}
 .chart-toggle-btn{background:none;border:1.5px solid var(--border);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px;transition:all .12s;white-space:nowrap}
 .chart-toggle-btn:hover{border-color:var(--accent);color:var(--accent)}
@@ -327,7 +327,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 월별 개요 ===== -->
     <div class="panel active" id="panel-overview">
-      <div class="kpi-grid" id="kpiGrid"></div>
 
       <!-- 기간/월 선택 인라인 필터 -->
       <div class="section" style="margin-bottom:14px">
@@ -384,7 +383,6 @@ select.inp{cursor:pointer}
 
     <!-- ===== 수익 분석 ===== -->
     <div class="panel" id="panel-profit">
-      <div class="kpi-grid" id="profitKpi"></div>
       <!-- 기간/월 선택 필터 -->
       <div class="section" style="margin-bottom:14px">
         <div class="filter-row" id="prrow-range">
@@ -794,8 +792,6 @@ select.inp{cursor:pointer}
         <label style="font-size:13px;font-weight:600;color:var(--text2);flex-shrink:0">브랜드사</label>
         <select class="inp" id="brandSelect" onchange="currentBrand=this.value;_renderBrandContent(this.value)" style="min-width:140px;font-weight:600"></select>
       </div>
-      <div class="kpi-grid" id="brandKpi"></div>
-
       <!-- 접을 수 있는 차트 영역 -->
       <div class="chart-wrap" id="wrap-brand">
         <div class="chart-wrap-head" onclick="toggleChartWrap('wrap-brand')">
@@ -1162,17 +1158,10 @@ function renderOverview(){
     filtered=data.filter(r=>_ovPicked.has(r.y));
   }
 
-  // KPI
+  // KPI는 표 하단 합계 행에 이미 표시되므로 별도 카드 불필요
   const tot={bo:0,b:0,nb:0,p:0,ls:0,dw:0};
   filtered.forEach(r=>{tot.bo+=r.bo;tot.b+=r.b;tot.nb+=r.nb;tot.p+=r.p;tot.ls+=r.ls;tot.dw+=r.dw});
   const latest=data[data.length-1]||{};
-  document.getElementById('kpiGrid').innerHTML=`
-    <div class="kpi"><div class="kpi-label">총 가입보상금</div><div class="kpi-value c-blue">${won(tot.bo)}</div><div class="kpi-sub">${_ovMode==='range'?'선택기간':'선택월'} 합산</div></div>
-    <div class="kpi"><div class="kpi-label">총 청구금</div><div class="kpi-value">${won(tot.b)}</div></div>
-    <div class="kpi"><div class="kpi-label">총 실수납</div><div class="kpi-value c-green">${won(tot.p)}</div></div>
-    <div class="kpi"><div class="kpi-label">총 회선수</div><div class="kpi-value c-orange">${num(tot.ls)}</div><div class="kpi-sub">최신월: ${latest.ls||0}회선</div></div>
-    <div class="kpi"><div class="kpi-label">총 도매대가</div><div class="kpi-value c-red">${won(tot.dw)}</div></div>
-  `;
   if(data.length)document.getElementById('latestBadge').textContent='최신: '+fmt(data[data.length-1].y);
 
   // 테이블
@@ -1222,12 +1211,6 @@ function renderProfit(){
     data=_prPicked.size>0?allData.filter(r=>_prPicked.has(r.y)):allData;
   }
 
-  let totRevenue=0,totCost=0;
-  data.forEach(r=>{totRevenue+=r.bo+r.p;totCost+=r.dw});
-  const totProfit=totRevenue-totCost;
-  document.getElementById('profitKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">최신월 보상금</div><div class="kpi-value c-orange">${won(data[data.length-1]?.bo)}</div><div class="kpi-sub">${fmt(data[data.length-1]?.y)}</div></div>
-  `;
   const labels=data.map(r=>fmt(r.y));
   const profits=data.map(r=>(r.bo+r.p)-r.dw);
   mkChart('chartProfit',{type:'bar',data:{labels,datasets:[{label:'순이익',data:profits,backgroundColor:profits.map(v=>v>=0?'rgba(23,201,100,.7)':'rgba(243,18,96,.7)'),borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}}});
@@ -3081,7 +3064,7 @@ function renderSettlement(){
   const sumV=(key)=>YMS.reduce((s,ym)=>s+(calcs[ym]?.[key]||0),0);
 
   const theadLabel='padding:8px 12px;border:1px solid var(--border);font-weight:700;background:var(--surface);text-align:center;white-space:nowrap';
-  const theadData='padding:7px 14px;border:1px solid var(--border);text-align:center;white-space:nowrap';
+  const theadData='padding:7px 14px;border:1px solid var(--border);font-weight:700;background:var(--surface);text-align:center;white-space:nowrap';
   const theadSum='padding:8px 12px;border:1px solid var(--border);font-weight:700;background:var(--surface);text-align:center;vertical-align:middle;white-space:nowrap';
 
   let html=`<thead style="position:sticky;top:0;z-index:5;background:#fff">
@@ -3092,7 +3075,7 @@ function renderSettlement(){
   </tr>
   <tr>
     <td colspan="2" style="${theadLabel}">청구/수납월</td>
-    ${YMS.map(ym=>`<td style="${theadData};font-weight:700">${fmt(ym)}</td>`).join('')}
+    ${YMS.map(ym=>`<td style="${theadData}">${fmt(ym)}</td>`).join('')}
   </tr>
   <tr>
     <td colspan="2" style="${theadLabel}">정산월</td>
@@ -3194,12 +3177,12 @@ function renderSettlement(){
 
   html+=`</tbody>`;
 
-  // Excel 대조 안내
+  // Excel 대조 안내 (일반 정보 행 — sticky/회색 강제 적용 제외)
   if(totalDiff>0){
-    html+=`<tfoot><tr><td colspan="${3+YMS.length}" style="padding:8px 14px;font-size:11px;color:var(--accent4);border:1px solid var(--border);background:rgba(243,18,96,.04)">
+    html+=`<tfoot><tr><td colspan="${3+YMS.length}" style="padding:8px 14px;font-size:11px;color:var(--accent4);border:1px solid var(--border);background:rgba(243,18,96,.06) !important;position:static !important">
       * 표시된 값은 HTML 계산값과 Excel 실제값이 다릅니다. 건별 VAT 반올림 합산 차이일 수 있습니다.</td></tr></tfoot>`;
   } else {
-    html+=`<tfoot><tr><td colspan="${3+YMS.length}" style="padding:8px 14px;font-size:11px;color:var(--accent2);border:1px solid var(--border);background:rgba(23,201,100,.04)">
+    html+=`<tfoot><tr><td colspan="${3+YMS.length}" style="padding:8px 14px;font-size:11px;color:var(--accent2);border:1px solid var(--border);background:rgba(23,201,100,.06) !important;position:static !important">
       ✅ 모든 항목이 Excel 정산표와 일치합니다.</td></tr></tfoot>`;
   }
 
@@ -3245,7 +3228,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 11:03:55';
+const _BUILD_TIME = '2026-06-17 11:17:53';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
