@@ -3178,7 +3178,7 @@ function renderSettlement(){
     ${tdSum(`<span style="color:var(--accent)">${n(sumV('tax_s'))}</span>`)}
   </tr>
   <tr>${tdL('부가세')}${YMS.map(ym=>td(chk(ym,'tax_v',calcs[ym]?.tax_v||0))).join('')}${tdSum(n(sumV('tax_v')))}</tr>
-  <tr>${tdL('<b>합계</b>')}${YMS.map(ym=>td(`<b>${chk(ym,'tax_t',calcs[ym]?.tax_t||0)}</b>`,';background:rgba(26,110,245,.2);font-weight:700')).join('')}${tdSum(`<b>${n(sumV('tax_t'))}</b>`,';background:rgba(26,110,245,.25)')}</tr>`;
+  <tr>${tdL('<b>합계</b>')}${YMS.map(ym=>td(`<b>${chk(ym,'tax_t',calcs[ym]?.tax_t||0)}</b>`,';background:var(--surface);font-weight:700')).join('')}${tdSum(`<b>${n(sumV('tax_t'))}</b>`,';background:var(--surface2)')}</tr>`;
 
   html+=`</tbody>`;
 
@@ -3233,7 +3233,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 18:42:34';
+const _BUILD_TIME = '2026-06-17 19:26:57';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
