@@ -746,7 +746,7 @@ select.inp{cursor:pointer}
           <thead><tr>
             <th style="width:50px">No.</th><th>그룹</th><th>가입월</th><th>정책명</th><th>적용기간</th>
             <th class="num">총 장려금</th><th>지급종류</th>
-            <th>M+1 정산월</th><th>M+3 정산월</th><th>M+6 정산월</th><th>지급조건</th>
+            <th>M+1</th><th>M+3</th><th>M+6</th><th>M+9</th><th>M+12</th><th>M+15</th><th>지급조건</th>
           </tr></thead>
           <tbody id="tbodyPolicy"></tbody>
         </table></div>
@@ -2589,6 +2589,13 @@ function renderPolicy(){
     filtered=filtered.filter(p=>_plPicked.has(p.ym));
   }
 
+  // 마지막(최대) 지급 회차 기준으로 지급조건 문구 단순화
+  const lastMilestoneText=p=>{
+    const order=[['m15',15],['m12',12],['m9',9],['m6',6],['m3',3],['m1',1]];
+    for(const[key,n]of order){ if(p[key]) return `M+${n}까지 유지해야 지급`; }
+    return p.cond||'';
+  };
+
   document.getElementById('tbodyPolicy').innerHTML=filtered.map((p,i)=>{
     const amt=parseInt(p.total||0);
     return`<tr>
@@ -2602,7 +2609,10 @@ function renderPolicy(){
       <td style="color:var(--accent);font-size:12px">${p.m1?fmt(p.m1):''}</td>
       <td style="color:var(--accent2);font-size:12px">${p.m3?fmt(p.m3):''}</td>
       <td style="color:var(--accent3);font-size:12px">${p.m6?fmt(p.m6):''}</td>
-      <td style="font-size:12px;color:var(--text2)">${p.cond}</td>
+      <td style="color:var(--accent4);font-size:12px">${p.m9?fmt(p.m9):''}</td>
+      <td style="color:var(--text);font-size:12px">${p.m12?fmt(p.m12):''}</td>
+      <td style="color:var(--text2);font-size:12px">${p.m15?fmt(p.m15):''}</td>
+      <td style="font-size:12px;color:var(--text2)">${lastMilestoneText(p)}</td>
     </tr>`;
   }).join('');
 }
@@ -3207,7 +3217,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 11:46:29';
+const _BUILD_TIME = '2026-06-17 14:20:42';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
