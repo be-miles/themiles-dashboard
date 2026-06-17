@@ -68,7 +68,8 @@ table{border-collapse:collapse;font-size:13px;width:auto;min-width:100%}
 thead th{background:var(--surface);padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);white-space:nowrap;position:sticky;top:0;z-index:2;box-shadow:0 1px 0 var(--border)}
 thead th.num{text-align:right}
 thead th{position:sticky;top:0;z-index:2;background:var(--surface)}
-.thead-sub th{top:34px;z-index:1}
+.thead-sub th{top:32px;z-index:1}
+#tblNetwork .thead-group{height:33px;line-height:13px}
 #tblNetwork thead th{border:1px solid var(--border)}
 tfoot td,tfoot th{position:sticky;bottom:0;z-index:2;background:var(--surface)}
 .tfoot-row td,.tfoot-row th{position:sticky;bottom:0;z-index:2;background:var(--surface)}
@@ -192,7 +193,8 @@ select.inp{cursor:pointer}
   .billing-wrap{display:flex;flex-direction:column;min-height:0;max-height:calc(100vh - 180px);overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{font-size:12px;min-width:max-content;width:auto}
   thead th{padding:7px 9px;font-size:10px;white-space:nowrap}
-  .thead-sub th{top:27px}
+  .thead-sub th{top:26px}
+  #tblNetwork .thead-group{height:27px;line-height:11px}
   tbody td{padding:6px 9px;font-size:12px;white-space:nowrap}
   .tfoot-row td{padding:6px 9px;font-size:12px}
   .sub-table{font-size:12px;min-width:max-content}
@@ -699,7 +701,7 @@ select.inp{cursor:pointer}
           <thead>
           <tr>
             <th rowspan="2">정산년월</th><th rowspan="2">계약번호</th><th rowspan="2">요금제</th>
-            <th colspan="7" class="num" style="text-align:center">망 이용 대가</th>
+            <th colspan="7" class="num thead-group" style="text-align:center">망 이용 대가</th>
             <th rowspan="2" class="num">망이용대가 합계<br><span style="font-weight:400;font-size:10px">(A)</span></th>
             <th rowspan="2" class="num">대행수수료<br><span style="font-weight:400;font-size:10px">(B)</span></th>
             <th rowspan="2" class="num">도매대가합계<br><span style="font-weight:400;font-size:10px">(A+B)</span></th>
@@ -3231,7 +3233,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 14:59:01';
+const _BUILD_TIME = '2026-06-17 15:13:30';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
