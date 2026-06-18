@@ -375,7 +375,7 @@ select.inp{cursor:pointer}
         <div class="section-head"><span class="section-title">월별 총괄 현황</span><div class="tbl-menu" id="menuOv"><button class="tbl-menu-btn" onclick="toggleTblMenu('menuOv',event)">⋮</button><div class="tbl-menu-dropdown"><button class="tbl-menu-item" onclick="exportTableExcel('tblOverview','월별개요')">📥 엑셀 다운로드</button></div></div></div>
         <div class="table-wrap"><table id="tblOverview">
           <thead><tr>
-            <th>정산년월</th><th>가입년월</th><th class="num">보상금</th>
+            <th>정산년월</th><th class="num">보상금</th>
             <th class="num">청구금</th><th class="num">할인금</th><th class="num">실청구금</th>
             <th class="num">실수납</th><th class="num">회선수</th>
             <th class="num">망이용대가</th><th class="num">대행수수료</th><th class="num">도매대가계</th>
@@ -1175,7 +1175,7 @@ function renderOverview(){
   const tbody=document.getElementById('tbodyOverview');
   tbody.innerHTML=filtered.map(r=>`
     <tr>
-      <td><strong>${fmt(r.y)}</strong></td><td class="dim">${fmt(r['입'])}</td>
+      <td><strong>${fmt(r.y)}</strong></td>
       <td class="num c-blue">${won(r.bo)}</td>
       <td class="num">${won(r.b)}</td><td class="num dim">${won(r.d||0)}</td>
       <td class="num">${won(r.nb)}</td><td class="num c-green">${won(r.p)}</td>
@@ -1184,7 +1184,7 @@ function renderOverview(){
       <td class="num c-red">${won(r.dw)}</td>
     </tr>`).join('');
   document.getElementById('tfootOverview').innerHTML=`
-    <td>합계</td><td></td>
+    <td>합계</td>
     <td class="num">${won(tot.bo)}</td><td class="num">${won(tot.b)}</td><td></td>
     <td class="num">${won(tot.nb||0)}</td><td class="num">${won(tot.p)}</td><td class="num">${num(tot.ls)}</td>
     <td></td><td></td><td class="num">${won(tot.dw)}</td>`;
@@ -3243,7 +3243,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-18 11:54:01';
+const _BUILD_TIME = '2026-06-18 15:02:21';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
