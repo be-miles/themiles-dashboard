@@ -1666,11 +1666,14 @@ function handleUpload(e){
           });
         }
         log.textContent+=`장려금: ${added.rewards.length}건 파싱\n`;
+      } else {
+        log.textContent+=`⚠️ 가입일시 보상금 시트를 찾지 못했습니다 (시트명에 '가입일시'와 '보상금'이 포함되어야 함)\n`;
       }
 
-      // 청구상세 — 헤더 기반
-      if(wb.SheetNames.includes('청구상세')){
-        const ws=wb.Sheets['청구상세'];
+      // 청구상세 — 헤더 기반 (시트명 유연 매칭)
+      const billSheet=wb.SheetNames.find(n=>n.includes('청구')&&n.includes('상세'));
+      if(billSheet){
+        const ws=wb.Sheets[billSheet];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
         const vpiC=findCol(rows,'대리점코드');
         const yC=findCol(rows,'청구년월')>=0?findCol(rows,'청구년월'):findCol(rows,'정산년월');
@@ -1689,11 +1692,14 @@ function handleUpload(e){
             nb_v:nbVC>=0?Math.round(Number(r[nbVC]||0)):0});
         }
         log.textContent+=`청구상세: ${added.billing.length}건\n`;
+      } else {
+        log.textContent+=`⚠️ 청구상세 시트를 찾지 못했습니다 (시트명에 '청구'와 '상세'가 포함되어야 함)\n`;
       }
 
-      // 수납상세 — 헤더 기반
-      if(wb.SheetNames.includes('수납상세')){
-        const ws=wb.Sheets['수납상세'];
+      // 수납상세 — 헤더 기반 (시트명 유연 매칭)
+      const paySheet=wb.SheetNames.find(n=>n.includes('수납')&&n.includes('상세'));
+      if(paySheet){
+        const ws=wb.Sheets[paySheet];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
         const vpiC=findCol(rows,'대리점코드');
         const yC=findCol(rows,'수납년월')>=0?findCol(rows,'수납년월'):findCol(rows,'정산년월');
@@ -1710,11 +1716,13 @@ function handleUpload(e){
             p_v:pVC>=0?Math.round(Number(r[pVC]||0)):0});
         }
         log.textContent+=`수납상세: ${added.payments.length}건\n`;
+      } else {
+        log.textContent+=`⚠️ 수납상세 시트를 찾지 못했습니다 (시트명에 '수납'과 '상세'가 포함되어야 함)\n`;
       }
 
-      // 망이용대가 — 헤더 기반
-      const nSheet='망이용대가 대행수수료 상세';
-      if(wb.SheetNames.includes(nSheet)){
+      // 망이용대가 — 헤더 기반 (시트명 유연 매칭)
+      const nSheet=wb.SheetNames.find(n=>n.includes('망이용대가')&&n.includes('상세'));
+      if(nSheet){
         const ws=wb.Sheets[nSheet];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
         const vpiC=findCol(rows,'대리점코드');
@@ -1729,6 +1737,8 @@ function handleUpload(e){
           added.network.push({y:ym,cn:String(r[cnC]||''),plan:String(r[planC]||''),net:Math.round(Number(r[netC]||0)),fee:feeC>=0?Math.round(Number(r[feeC]||0)):0,total:0});
         }
         log.textContent+=`망이용대가: ${added.network.length}건\n`;
+      } else {
+        log.textContent+=`⚠️ 망이용대가 상세 시트를 찾지 못했습니다 (시트명에 '망이용대가'와 '상세'가 포함되어야 함)\n`;
       }
       // 장려금 정책
       if(wb.SheetNames.includes('장려금 정책')){
@@ -1792,7 +1802,7 @@ function handleUpload(e){
           const p=pays.reduce((s,r)=>s+(r.p||0),0);
           const nd=nets.reduce((s,r)=>s+(r.net||0),0);
           const fee=nets.reduce((s,r)=>s+(r.fee||0),0);
-          added.monthly.push({y:ym,bo,b,d,nb,ls,p,nd,fee,dw:nd+fee,stage:0});
+          added.monthly.push({y:ym,입:ymShift(ym,-1),bo,b,d,nb,ls,p,nd,fee,dw:nd+fee,stage:0});
         });
         if(added.monthly.length>0) log.textContent+=`총괄 자동생성: ${added.monthly.length}건 (상세 데이터 기반)\n`;
       }
@@ -3233,7 +3243,7 @@ const _FIREBASE_CONFIG = {
   appId: "1:1040259668472:web:3837be0c18c0bf95451e0d"
 };
 const _SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKLg4H0QUJ2Vx50NEj4MLHeHwjM_aUNRPUKafcuqnElc0dbZJ-oA3jAEmB-sgsfvmJlQ/exec';
-const _BUILD_TIME = '2026-06-17 19:56:11';
+const _BUILD_TIME = '2026-06-18 11:54:01';
 
 firebase.initializeApp(_FIREBASE_CONFIG);
 const _auth = firebase.auth();
